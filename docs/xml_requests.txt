@@ -1,0 +1,82 @@
+<request>
+	<type>GET, POST, DELETE, PUT, SEARCH</type>
+	<video-id>[hashed_string]</video-id>
+	<credentials>[sha256 session]</credentials>
+</request>
+
+Requests: {
+
+	Consumer:
+		<request>
+			<type>GET</type>
+			<payload>get_category</payload>
+			(<category></category> h' <user></user> h' <latest></latest> h' <trends></trends> h' <random></random>)
+		</request>
+		
+		<request>
+			<type>SEARCH</type>
+			<term>{string_term}</term>
+		</request>
+		
+		<request>
+			<type>GET</type>
+			<payload>get_video</payload>
+			<video-id>video-id</video-id>
+		</request>
+		
+		<request>
+			<type>POST</type>
+			<payload>login</payload>
+			<userid></userid>
+			<password></password>
+		</request>
+		
+		<request>
+			<type>POST</type>
+			<payload>register</payload>
+			<userid></userid>
+			<password></password>
+		</request>
+
+	Producer:
+	
+		<request>
+			<type>POST</type>
+			<payload>post_video</payload>
+			<video-name></video-name>
+			<tags></tags>
+			<description></description>
+			<session_cookie></session_cookie>
+		</request>
+		
+		<request>
+			<type>POST</type>
+			<payload>post_video_data</payload>
+			<video-id></video-id>
+			<video-chunk-order>{int}</video-chunk-order>
+			<video-chunk>{binary}</video-chunk>
+			<session_cookie></session_cookie>
+		</request>
+		
+		<request>
+			<type>PUT</type>
+			<payload>put_video</payload>
+			<video-id></video-id>
+			<video-name></video-name>
+			<tags></tags>
+			<description></description>
+			<session_cookie></session_cookie>
+		</request>
+		
+		<request>
+			<type>DELETE</type>
+			<payload>delete_vide</payload>
+			<video-id></video-id>
+			<session_cookie></session_cookie>
+		</request>
+
+	Broker:
+	
+	Application_server:
+	
+}

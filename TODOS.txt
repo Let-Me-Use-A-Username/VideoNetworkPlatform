@@ -1,0 +1,24 @@
+Consumer/Producer:
+
+* Δημιουργία UI κινητού
+* Ανάπτυξη κώδικα για την επικοινωνία και μεταξύ τον application server -> mobile
+* MediaPlayer για το κινητό
+* Επικοινωνία μεταξύ broker -> mobile
+
+Application server:
+
+* Sqlite για login, register, video description, κλπ.
+* comments
+* handlers/controllers (xml)
+* επικοινωνία με broker
+* search_utilities
+* hashing and load_balancing
+
+Broker:
+
+* Upload
+* Stream (pull apo mobile)
+* chunk video, ypologismos xronou video kai apothikefsi metadata
+* filesystem
+* video_seek [katallilo algorithmo]
+* anaktisi dedomenon (json se folders)
