@@ -1,5 +1,7 @@
 package com.raccoon.models;
 
+import java.time.format.DateTimeFormatter;
+
 public class VideoModel {
 
     String name;
@@ -7,18 +9,26 @@ public class VideoModel {
     String description;
     String[] tags;
     String uploader;
-    int length;
+    float length;
+    float frameRate;
+    int height;
+    int width;
+    String timestamp;
     long views;
 
     public VideoModel(){}
 
-    public VideoModel(String name, String id, String description, String[] tags, String uploader, int length, long views){
+    public VideoModel(String name, String id, String description, String[] tags, String uploader, float length, float frameRate, int height, int width, String timestamp, long views){
         this.name = name;
         this.id = id;
         this.description = description;
         this.tags = tags;
         this.uploader = uploader;
         this.length = length;
+        this.frameRate = frameRate;
+        this.height = height;
+        this.width = width;
+        this.timestamp = timestamp;
         this.views = views;
     }
 
@@ -63,12 +73,44 @@ public class VideoModel {
         this.uploader = uploader;
     }
 
-    public int getLength() {
+    public float getLength() {
         return length;
     }
 
-    public void setLength(int length) {
+    public void setLength(float length) {
         this.length = length;
+    }
+
+    public float getFrameRate() {
+        return frameRate;
+    }
+
+    public void setFrameRate(float frameRate) {
+        this.frameRate = frameRate;
+    }
+
+    public int getHeight() {
+        return height;
+    }
+
+    public void setHeight(int height) {
+        this.height = height;
+    }
+
+    public int getWidth() {
+        return width;
+    }
+
+    public void setWidth(int width) {
+        this.width = width;
+    }
+
+    public String getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(String timestamp) {
+        this.timestamp = timestamp;
     }
 
     public long getViews() {
@@ -78,5 +120,6 @@ public class VideoModel {
     public void setViews(long views) {
         this.views = views;
     }
+
 
 }

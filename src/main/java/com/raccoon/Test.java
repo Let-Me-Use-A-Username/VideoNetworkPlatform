@@ -1,35 +1,72 @@
 package com.raccoon;
 
-import com.drew.imaging.ImageProcessingException;
-import com.videomole.io.VideoFiles;
+import com.raccoon.database.MainController;
+import com.raccoon.models.VideoModel;
+import com.videomole.Models.VideoDirectory;
+import com.videomole.controllers.VideoController;
+import ws.schild.jave.EncoderException;
+import ws.schild.jave.MultimediaObject;
+
 
 import java.io.*;
-import java.nio.file.Files;
+import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Test {
 
-    public static void main(String[] args){
+    private static final String FileUrl = "Broker1.db";
+    private static final String OSUrl = "D:/DS/brokers/db";
 
-        String filepath = Thread.currentThread().getContextClassLoader().getResource("root/HelloThere.mp4")
-                .getPath();
+    public static void main(String[] args) {
 
-        try{
-            //VideoFiles.readMP4(filepath);
+        // Sqlite connection and setup
+        MainController.createNewDatabase(FileUrl, OSUrl);
 
-            File file = new File(filepath);
-            BufferedInputStream in = new BufferedInputStream(new FileInputStream(file));
-            byte[] fileContent = in.readAllBytes();   //Files.readAllBytes(file.toPath());
-            System.out.println("test");
-            ArrayList<byte[]> chunks = getChunks(fileContent);
-            for(int i = 0; i < chunks.size(); i++){
-                VideoFiles.storeChunk(chunks.get(i), "skyrim", "alex", i, "mp4");
-            }
 
-        }catch (IOException e) {
-            System.out.println(e.getMessage());
-        }
+
+        // Fragmentation (upload)
+        // Transfer some logic to the application server and some to the broker handler
+//        VideoController ctrl = new VideoController();
+//
+//        VideoModel videoModel = new VideoModel();
+//        String uploader = "_Amen_";
+//        videoModel.setUploader(uploader);
+//        uploader = Utils.sha1(uploader);
+//        String videoName = "Pikachu Alex jones";
+//        videoModel.setName(videoName);
+//        videoName = Utils.sha1(videoName);
+//        videoModel.setDescription("Mpla mpla");
+//        videoModel.setViews(0);
+//        videoModel.setId(videoName);
+//        videoModel.setTags(new String[]{"Entertainment", "Parody"});
+//        String timestamp = Instant.now().toString();
+//        videoModel.setTimestamp(timestamp);
+//
+//        String filepath = Thread.currentThread().getContextClassLoader().getResource("root/Pica.mp4")
+//                .getPath();
+//
+//        // get video length from source
+//        File source = new File(filepath);
+//        MultimediaObject sourceObj = new MultimediaObject(source);
+//        try {
+//            videoModel.setFrameRate(sourceObj.getInfo().getVideo().getFrameRate());
+//            videoModel.setHeight(sourceObj.getInfo().getVideo().getSize().getHeight());
+//            videoModel.setWidth(sourceObj.getInfo().getVideo().getSize().getWidth());
+//            videoModel.setLength(sourceObj.getInfo().getDuration());
+//        } catch (EncoderException e) {
+//            e.printStackTrace();
+//        }
+//
+//        int chunks = (int)videoModel.getLength() / 10000;
+//        chunks = videoModel.getLength() % 10000 == 0? chunks : chunks + 1;
+//
+//        VideoDirectory videoDirectory = new VideoDirectory(videoModel, chunks, "root/"+uploader+"/"+videoName);
+//        boolean created = ctrl.createVideoDirectory(source, videoDirectory);
+//        if(created){
+//            System.out.println("Fragmentation successful.");
+//        }else{
+//            System.out.println("Fragmentation failed.");
+//        }
 
     }
 

@@ -18,7 +18,7 @@ Broker:
 
 * Upload
 * Stream (pull apo mobile)
-* chunk video, ypologismos xronou video kai apothikefsi metadata
+* apothikefsi metadata se sqlite
 * filesystem
 * video_seek [katallilo algorithmo]
 * anaktisi dedomenon (json se folders)
