@@ -1,15 +1,9 @@
 package com.raccoon;
 
-import com.raccoon.database.MainController;
-import com.raccoon.models.VideoModel;
-import com.videomole.Models.VideoDirectory;
-import com.videomole.controllers.VideoController;
-import ws.schild.jave.EncoderException;
-import ws.schild.jave.MultimediaObject;
 
+import com.videomole.BrokerFileSystem;
+import com.videomole.controllers.DatabaseController;
 
-import java.io.*;
-import java.time.Instant;
 import java.util.ArrayList;
 
 public class Test {
@@ -20,8 +14,10 @@ public class Test {
     public static void main(String[] args) {
 
         // Sqlite connection and setup
-        MainController.createNewDatabase(FileUrl, OSUrl);
-
+        //DatabaseController.createNewDatabase(FileUrl, OSUrl);
+        BrokerFileSystem.getInstance().setDatabase(FileUrl, OSUrl);
+        BrokerFileSystem.getInstance().getDB().createNewDatabase();
+        BrokerFileSystem.getInstance().getDB().initializeBrokerTables();
 
 
         // Fragmentation (upload)
@@ -42,7 +38,7 @@ public class Test {
 //        String timestamp = Instant.now().toString();
 //        videoModel.setTimestamp(timestamp);
 //
-//        String filepath = Thread.currentThread().getContextClassLoader().getResource("root/Pica.mp4")
+//        String filepath = Thread.currentThread().getContextClassLoader().getResource("root/Pika.mp4")
 //                .getPath();
 //
 //        // get video length from source
@@ -60,7 +56,9 @@ public class Test {
 //        int chunks = (int)videoModel.getLength() / 10000;
 //        chunks = videoModel.getLength() % 10000 == 0? chunks : chunks + 1;
 //
-//        VideoDirectory videoDirectory = new VideoDirectory(videoModel, chunks, "root/"+uploader+"/"+videoName);
+//        VideoDirectory videoDirectory = new VideoDirectory(videoName, uploader, chunks, "root/"+uploader+"/"+videoName,
+//                videoModel.getHeight(), videoModel.getWidth(), videoModel.getLength(), videoModel.getFrameRate(), 0);
+//
 //        boolean created = ctrl.createVideoDirectory(source, videoDirectory);
 //        if(created){
 //            System.out.println("Fragmentation successful.");

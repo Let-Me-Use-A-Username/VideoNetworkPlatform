@@ -1,24 +1,38 @@
 Consumer/Producer:
 
+-- mexri 25 --
 * Δημιουργία UI κινητού
+* epikoinonia me kinito san client
+-- --
+
 * Ανάπτυξη κώδικα για την επικοινωνία και μεταξύ τον application server -> mobile
 * MediaPlayer για το κινητό
 * Επικοινωνία μεταξύ broker -> mobile
 
 Application server:
 
+--mexri 25 --
 * Sqlite για login, register, video description, κλπ.
+* hashing and load_balancing
+* επικοινωνία με broker (san client gia arxi)
+-- ---
+
 * comments
 * handlers/controllers (xml)
 * επικοινωνία με broker
+* spring framework
 * search_utilities
 * hashing and load_balancing
 
-Broker:
-
+Broker -- mexri 25 --:
+* refactor se ksexora se modules
 * Upload
 * Stream (pull apo mobile)
-* apothikefsi metadata se sqlite
+* caching algorithm for metadata (based on mem?? example 5%, 10% or 20% of the ram)
 * filesystem
-* video_seek [katallilo algorithmo]
-* anaktisi dedomenon (json se folders)
+* video_seek [katallilo algorithmo] na vazoume sosta onomata gia efkoli anaktisi sto upload kai enan aplo algorithmo me to pou vriskete o xristis ti buffer exei klp
+* junit
+* na ftiaxtei se ksexoro project XMPRpc communication
+
+-- argotera gia broker ---
+* jwt gia authorize kai gia na gnorizoun ta secret metaksi tous brokers kai application server
