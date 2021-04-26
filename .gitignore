@@ -3,3 +3,4 @@ build/*
 .gradle/*
 root/*
 src/main/resources/root
+BrokerServer/src/main/resources/videos/*

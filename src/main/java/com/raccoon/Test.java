@@ -1,6 +1,5 @@
 package com.raccoon;
 
-
 import com.videomole.BrokerFileSystem;
 import com.videomole.controllers.DatabaseController;
 

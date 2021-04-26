@@ -1,0 +1,5 @@
+{
+    "address": "192.168.84.1",
+    "port": "3000",
+    "sqlite": "D:\\DS\\brokers\\db\\Broker1.db"
+}

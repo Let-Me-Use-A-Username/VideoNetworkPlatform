@@ -1,0 +1,10 @@
+Simple user:
+SideTab:
+ - Home Screen (Most viewed lately Today, Week, Monthly, Yearly)
+ - Subscriptions (List of subs)
+ - Upload
+
+Profile/Settings Icon (TopLeft or TopRight based on the SideTab)
+Notification Icon
+
+Uploader (Studio):
