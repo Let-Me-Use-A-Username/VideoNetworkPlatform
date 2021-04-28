@@ -1,0 +1,66 @@
+
+Video Routes init GET
+
+  byte[] header_buffer = new byte[8192];
+            byte[] headerProduct = MRMTPBuilder.get(responseHeader).getBytes(StandardCharsets.UTF_8);
+            System.arraycopy(
+                    headerProduct,
+                    0,
+                    header_buffer,
+                    0,
+                    headerProduct.length
+            );
+
+            out.write(header_buffer);
+            out.flush();
+
+            in.read(header_buffer, 0, 8192);
+            MRMTPHeader inter = MRMTPParser.parse(new String(header_buffer, StandardCharsets.UTF_8));
+
+            String body = inter.getBody();
+            System.out.println("Client send "+body);
+            JsonObject jsObj = JsonParser.parseString(body).getAsJsonObject();
+
+            String artistHash = jsObj.get("artist").getAsString();
+            String videoHash = jsObj.get("video").getAsString();
+            int chunks = jsObj.get("chunks").getAsInt();
+            int fileSize = jsObj.get("fileSize").getAsInt();
+            for(int i = 0; i < chunks; i++){
+                int len = (i == chunks - 1 && fileSize % VIDEO_BUFFER != 0)
+                        ? fileSize % VIDEO_BUFFER
+                        : VIDEO_BUFFER;
+                byte[] buffer = new byte[VIDEO_BUFFER];
+                in.read(buffer, 0, len);
+                try{
+                    VideoFiles.storeData(buffer, i, videoHash, artistHash);
+                }catch (IOException failedToWrite){
+                    System.out.println("Failed to write file. Execute in another thread a video file deletion.");
+                    return;
+                }
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            responseHeader.setBody(
+                    """
+                        {
+                            "uploaded": true,
+                        }
+                    """
+            );
+
+            byte[] headerProduct2 = MRMTPBuilder.get(responseHeader).getBytes(StandardCharsets.UTF_8);
+            byte[] header_buffer2 = new byte[8192];
+            System.arraycopy(
+                    headerProduct2,
+                    0,
+                    header_buffer2,
+                    0,
+                    headerProduct2.length
+            );
+            System.out.println("Sending status to user");
+            out.write(header_buffer2);
+            out.flush();

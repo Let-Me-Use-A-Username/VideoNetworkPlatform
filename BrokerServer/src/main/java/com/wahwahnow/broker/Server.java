@@ -39,7 +39,7 @@ public class Server implements Runnable{
         while(true){
             try {
                 Socket newConnection = serverSocket.accept();
-                new Thread(new Handler(newConnection)).start();
+                    new Thread(new Handler(newConnection)).start();
             } catch (IOException e) {
                 SystemLogger.Log("E: Failed to establish a new connection");
                 break;

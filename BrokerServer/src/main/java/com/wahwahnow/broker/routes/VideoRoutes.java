@@ -4,13 +4,20 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.wahwahnow.broker.BrokerData;
+import com.wahwahnow.broker.controllers.VideoController;
 import com.wahwahnow.broker.io.VideoFiles;
+import com.wahwahnow.broker.models.VideoDirectory;
+import org.mrmtp.rpc.filetransfer.FileTransfer;
 import org.mrmtp.rpc.header.MRMTPBuilder;
 import org.mrmtp.rpc.header.MRMTPHeader;
 import org.mrmtp.rpc.header.MRMTPParser;
 import org.mrmtp.rpc.methods.MethodConstants;
 import org.mrmtp.rpc.router.MethodCall;
+import org.mrmtp.rpc.filetransfer.FileReader;
+import ws.schild.jave.EncoderException;
+import ws.schild.jave.MultimediaObject;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -21,115 +28,64 @@ import java.nio.charset.StandardCharsets;
 public class VideoRoutes {
 
     private static Gson gson = new Gson();
+    private static VideoController videoController = new VideoController();
     private static int VIDEO_BUFFER = 1048576;
 
     public static void init(){
         // Get artist video (streaming)
-        BrokerData.getInstance().getBrokerRouter().GET("/artist/video", new MethodCall() {
-            @Override
-            public void call(Socket socket, MRMTPHeader mrmtpHeader, String s) throws IOException {
-                OutputStream out = socket.getOutputStream();
-                InputStream in = socket.getInputStream();
+        BrokerData.getInstance().getBrokerRouter().GET("/artist/video", (socket, mrmtpHeader, s) -> {
+            OutputStream out = socket.getOutputStream();
+            InputStream in = socket.getInputStream();
 
-                String body = mrmtpHeader.getBody();
-                JsonObject jsObj = JsonParser.parseString(body).getAsJsonObject();
+            String body = mrmtpHeader.getBody();
+            JsonObject jsObj = JsonParser.parseString(body).getAsJsonObject();
 
-                String artist = jsObj.get("artist").getAsString();
+            String artist = jsObj.get("artist").getAsString();
 
-                System.out.println("We got artist as :" +artist);
+            System.out.println("We got artist as :" +artist);
 
-                out.write("The method to get the video has been called".getBytes(StandardCharsets.UTF_8));
-                out.flush();
-            }
+            out.write("The method to get the video has been called".getBytes(StandardCharsets.UTF_8));
+            out.flush();
         });
 
+
         // Upload video
-        BrokerData.getInstance().getBrokerRouter().POST("/artist/videos", new MethodCall() {
-            @Override
-            public void call(Socket socket, MRMTPHeader mrmtpHeader, String s) throws IOException {
-                OutputStream out = socket.getOutputStream();
-                InputStream in = socket.getInputStream();
+        BrokerData.getInstance().getBrokerRouter().POST("/artist/videos", (socket, mrmtpHeader, s) -> {
+            OutputStream out = socket.getOutputStream();
+            InputStream in = socket.getInputStream();
 
-                MRMTPHeader responseHeader = new MRMTPHeader();
-                responseHeader.setDestination(socket.getRemoteSocketAddress().toString());
-                responseHeader.setSource(BrokerData.getInstance().getServerNode().out());
-                responseHeader.setKeepAlive(true);
-                responseHeader.setConnection(200);
-                responseHeader.setContentType("json");
-                responseHeader.setMethodType(MethodConstants.GET);
-                responseHeader.setMethod("/artist/video");
-                responseHeader.setBody(
-                        """
-                            {
-                                "chunkSize": 1048576
-                            }
-                        """
-                );
+            JsonObject jsObj = JsonParser.parseString(mrmtpHeader.getBody()).getAsJsonObject();
 
-                byte[] header_buffer = new byte[8192];
-                byte[] headerProduct = MRMTPBuilder.get(responseHeader).getBytes(StandardCharsets.UTF_8);
-                System.arraycopy(
-                        headerProduct,
-                        0,
-                        header_buffer,
-                        0,
-                        headerProduct.length
-                );
+            // Get json values
+            String artist = jsObj.get("artist").getAsString();
+            String video = jsObj.get("video").getAsString();
+            int FILE_SIZE = jsObj.get("fileSize").getAsInt();
 
-                out.write(header_buffer);
-                out.flush();
+            // Create a response header
+            MRMTPHeader responseHeader = new MRMTPHeader();
+            responseHeader.setDestination(socket.getRemoteSocketAddress().toString());
+            responseHeader.setSource(BrokerData.getInstance().getServerNode().out());
+            responseHeader.setKeepAlive(true);
+            responseHeader.setConnection(200);
+            responseHeader.setContentType("json");
+            responseHeader.setMethodType(MethodConstants.GET);
+            responseHeader.setMethod("/artist/video");
+            responseHeader.setBody("{ \"bufferSize\": "+VIDEO_BUFFER+" }");
+            // Send response
+            out.write(MRMTPBuilder.getMRMTPBuffer(responseHeader), 0, 1024);
 
-                in.read(header_buffer, 0, 8192);
-                MRMTPHeader inter = MRMTPParser.parse(new String(header_buffer, StandardCharsets.UTF_8));
+            // create directory
+            FileReader.createDirectoryPath("./temp");
 
-                String body = inter.getBody();
-                System.out.println("Client send "+body);
-                JsonObject jsObj = JsonParser.parseString(body).getAsJsonObject();
+            String filepath = "./temp/"+artist+"-"+video+".mp4";
+            // Get video from client
+            FileTransfer.downloadFile(filepath, VIDEO_BUFFER, FILE_SIZE, socket);
+            // Start a thread (TODO: make a process and communicate with IPC to call ffmpeg on the file)
+            Runnable task = () -> {
+                fragmentVideoFile(filepath, artist, video);
+            };
+            new Thread(task).start();
 
-                String artistHash = jsObj.get("artist").getAsString();
-                String videoHash = jsObj.get("video").getAsString();
-                int chunks = jsObj.get("chunks").getAsInt();
-                int fileSize = jsObj.get("fileSize").getAsInt();
-                for(int i = 0; i < chunks; i++){
-                    int len = (i == chunks - 1 && fileSize % VIDEO_BUFFER != 0)
-                            ? fileSize % VIDEO_BUFFER
-                            : VIDEO_BUFFER;
-                    byte[] buffer = new byte[VIDEO_BUFFER];
-                    in.read(buffer, 0, len);
-                    try{
-                        VideoFiles.storeData(buffer, i, videoHash, artistHash);
-                    }catch (IOException failedToWrite){
-                        System.out.println("Failed to write file. Execute in another thread a video file deletion.");
-                        return;
-                    }
-                    try {
-                        Thread.sleep(100);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-
-                responseHeader.setBody(
-                        """
-                            {
-                                "uploaded": true,
-                            }
-                        """
-                );
-
-                byte[] headerProduct2 = MRMTPBuilder.get(responseHeader).getBytes(StandardCharsets.UTF_8);
-                byte[] header_buffer2 = new byte[8192];
-                System.arraycopy(
-                        headerProduct2,
-                        0,
-                        header_buffer2,
-                        0,
-                        headerProduct2.length
-                );
-                System.out.println("Sending status to user");
-                out.write(header_buffer2);
-                out.flush();
-            }
         });
 
         // Delete video
@@ -155,6 +111,39 @@ public class VideoRoutes {
                 out.flush();
             }
         });
+    }
+
+    private static void fragmentVideoFile(String filepath, String artist, String video){
+        File file = new File(filepath);
+        // Fragmentation (upload)
+        // Transfer some logic to the application server and some to the broker handler
+        // TODO: make root a Broker id
+        String videoDirectoryPath = "./root/"+artist+"/"+video;
+        VideoDirectory videoDirectory = new VideoDirectory();
+        videoDirectory.setUploaderID(artist);
+        videoDirectory.setVideoPath(videoDirectoryPath);
+        videoDirectory.setHits(0);
+        videoDirectory.setId(video);
+        MultimediaObject sourceObj = new MultimediaObject(file);
+        try {
+            videoDirectory.setFramerate(sourceObj.getInfo().getVideo().getFrameRate());
+            videoDirectory.setHeight(sourceObj.getInfo().getVideo().getSize().getHeight());
+            videoDirectory.setWidth(sourceObj.getInfo().getVideo().getSize().getWidth());
+            videoDirectory.setLength(sourceObj.getInfo().getDuration());
+        } catch (EncoderException e) {
+            e.printStackTrace();
+            return ;
+        }
+        int chunks = (int) ( videoDirectory.getLength() / (1000 * 10)) + (int) (videoDirectory.getLength() % (1000 * 10.0) != 0? 1 : 0);
+        videoDirectory.setChunks(chunks);
+
+        boolean created = videoController.createVideoDirectory(file, videoDirectory);
+
+        if(created){
+            System.out.println("Fragmentation successful.");
+        }else{
+            System.out.println("Fragmentation failed.");
+        }
     }
 
 }
