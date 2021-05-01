@@ -8,12 +8,14 @@ public class VideoFragments {
     private boolean paused;
     private int chunks;
     private int lastFragmentID;
-    private HashMap<Integer, Byte[]> chunkArray;
+    private long lastContactTimestamp;
+    private HashMap<Integer, byte[]> chunkArray;
 
     public VideoFragments(){
         currentSeek = 0;
         paused = false;
         chunks = 0;
+        lastContactTimestamp = 0;
         chunkArray = new HashMap<>();
     }
 
@@ -23,6 +25,14 @@ public class VideoFragments {
 
     public void setCurrentSeek(int currentSeek) {
         this.currentSeek = currentSeek;
+    }
+
+    public void setLastContactTimestamp(long timestamp){
+        lastContactTimestamp = timestamp;
+    }
+
+    public long getLastContactTimestamp(){
+        return lastContactTimestamp;
     }
 
     public boolean isPaused() {
@@ -45,8 +55,12 @@ public class VideoFragments {
         return chunkArray.keySet().toArray(new Integer[0]);
     }
 
-    public Byte[] getFragment(int i){
+    public byte[] getFragment(int i){
         return chunkArray.get(i);
+    }
+
+    public void put(int fragmentID, byte[] data){
+        chunkArray.put(fragmentID, data);
     }
 
     public int getLastFragmentID(){
@@ -63,11 +77,19 @@ public class VideoFragments {
         return next > lastFragmentID? -1 : next;
     }
 
-    public Byte[] getNextFragment(){
+    public byte[] getNextFragment(){
         if(currentSeek == 0) return chunkArray.get(0);
         int next = currentSeek / 10 * 10 + 10;
         if(next > lastFragmentID) return null;
         return chunkArray.get(next);
+    }
+
+    public boolean hasFragments(){
+        return chunkArray.values().size() != 0;
+    }
+
+    public boolean isLastFragment(){
+        return currentSeek / 10 * 10 == lastFragmentID;
     }
 
 

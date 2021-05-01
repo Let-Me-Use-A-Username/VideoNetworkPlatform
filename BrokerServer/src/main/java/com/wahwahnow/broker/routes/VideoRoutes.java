@@ -3,10 +3,13 @@ package com.wahwahnow.broker.routes;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
 import com.wahwahnow.broker.BrokerData;
 import com.wahwahnow.broker.controllers.VideoController;
 import com.wahwahnow.broker.io.VideoFiles;
+import com.wahwahnow.broker.models.FragmentModel;
 import com.wahwahnow.broker.models.VideoDirectory;
+import org.mrmtp.rpc.Util;
 import org.mrmtp.rpc.filetransfer.FileTransfer;
 import org.mrmtp.rpc.header.MRMTPBuilder;
 import org.mrmtp.rpc.header.MRMTPHeader;
@@ -21,8 +24,12 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.lang.reflect.Type;
 import java.net.Socket;
 import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 
 public class VideoRoutes {
@@ -32,25 +39,84 @@ public class VideoRoutes {
     private static int VIDEO_BUFFER = 1048576;
 
     public static void init(){
-        // Get artist video (streaming)
+
+        // Get artist video
         BrokerData.getInstance().getBrokerRouter().GET("/artist/video", (socket, mrmtpHeader, s) -> {
+            OutputStream out = socket.getOutputStream();
+            InputStream in = socket.getInputStream();
+
+            JsonObject jsObj = JsonParser.parseString(mrmtpHeader.getBody()).getAsJsonObject();
+            String artistHash = jsObj.get("artist").getAsString();
+            String videoHash = jsObj.get("video").getAsString();
+
+            String videoDirectory = "./root/"+artistHash+"/"+videoHash;
+            // get total fragment files from the video directory
+            int totalFragments = org.mrmtp.rpc.filetransfer.FileReader.getTotalDirectoryFiles(videoDirectory);
+            // get the id of the last fragment
+            int lastFragmentID = com.wahwahnow.broker.io.FileReader.getLastFragmentID(videoDirectory);
+
+            // Create a response header
+            MRMTPHeader responseHeader = new MRMTPHeader();
+            responseHeader.setDestination(socket.getRemoteSocketAddress().toString());
+            responseHeader.setSource(BrokerData.getInstance().getServerNode().out());
+            responseHeader.setKeepAlive(true);
+            responseHeader.setConnection(200);
+            responseHeader.setContentType("json");
+            responseHeader.setMethodType(MethodConstants.GET);
+            responseHeader.setMethod("/artist/video");
+            responseHeader.setBody("{ \"totalChunks\": "+totalFragments+", \"lastFragmentID\": "+lastFragmentID+" }");
+
+            out.write(MRMTPBuilder.getMRMTPBuffer(responseHeader), 0, 1024);
+
+            out.close();
+            in.close();
+            socket.close();
+
+        });
+
+        // Stream video
+        BrokerData.getInstance().getBrokerRouter().GET("/artist/video/fragments", ((socket, mrmtpHeader, s) -> {
             OutputStream out = socket.getOutputStream();
             InputStream in = socket.getInputStream();
 
             String body = mrmtpHeader.getBody();
             JsonObject jsObj = JsonParser.parseString(body).getAsJsonObject();
 
+            int currentSeek = jsObj.get("currentSeek").getAsInt();
+            // if client send buffering: true as a value send 6 chunks
+            boolean buffering = jsObj.get("buffering").getAsBoolean();
+            boolean hasFragments = jsObj.has("fragments");
             String artist = jsObj.get("artist").getAsString();
+            String video  = jsObj.get("video").getAsString();
 
-            System.out.println("We got artist as :" +artist);
+            // send 6 (or all if less than 6) fragments
+            if(buffering && !hasFragments){
+                ArrayList<String> totalMissingFragments = getFragmentNumberToStillGet(null, artist, video);
+                // TODO:
+                // send packets
+                // implement ...
+            }
+            // check if we should send 3 more
+            else if(hasFragments){
+                Type listType = new TypeToken<List<FragmentModel>>(){}.getType();
+                List<FragmentModel> fragments = gson.fromJson(jsObj.get("fragments"), listType);
+                if(sendNext(currentSeek, fragments)) {
+                    // get total missing fragments (sorted)
+                    ArrayList<String> totalMissingFragments = getFragmentNumberToStillGet(fragments, artist, video);
+                    // TODO:
+                    // send packets
+                    // implement ...
+                }
+            }
 
-            out.write("The method to get the video has been called".getBytes(StandardCharsets.UTF_8));
-            out.flush();
-        });
+            out.close();
+            in.close();
+            socket.close();
 
+        }));
 
         // Upload video
-        BrokerData.getInstance().getBrokerRouter().POST("/artist/videos", (socket, mrmtpHeader, s) -> {
+        BrokerData.getInstance().getBrokerRouter().POST("/artist/video", (socket, mrmtpHeader, s) -> {
             OutputStream out = socket.getOutputStream();
             InputStream in = socket.getInputStream();
 
@@ -68,7 +134,7 @@ public class VideoRoutes {
             responseHeader.setKeepAlive(true);
             responseHeader.setConnection(200);
             responseHeader.setContentType("json");
-            responseHeader.setMethodType(MethodConstants.GET);
+            responseHeader.setMethodType(MethodConstants.POST);
             responseHeader.setMethod("/artist/video");
             responseHeader.setBody("{ \"bufferSize\": "+VIDEO_BUFFER+" }");
             // Send response
@@ -100,7 +166,7 @@ public class VideoRoutes {
             }
         });
 
-        // Delete video
+        // Delete artist
         BrokerData.getInstance().getBrokerRouter().DELETE("/artist", new MethodCall() {
             @Override
             public void call(Socket socket, MRMTPHeader mrmtpHeader, String s) throws IOException {
@@ -144,6 +210,32 @@ public class VideoRoutes {
         }else{
             System.out.println("Fragmentation failed.");
         }
+    }
+
+    // checks if we should fragments or not
+    private static boolean sendNext(int currentSeek, List<FragmentModel> fragments){
+        int currentSeekFragmentID = currentSeek / 10 * 10;
+        int nextBuffer = 0;
+        for(FragmentModel frag: fragments) nextBuffer += frag.getFragmentID() > currentSeekFragmentID? 1: 0;
+        // if he has 3 or more on his buffer window front we dont send
+        // else we send
+        return nextBuffer <= 3;
+
+    }
+
+    // check directory if there more fragments to get and return how many he doesn't have
+    private static ArrayList<String> getFragmentNumberToStillGet(List<FragmentModel> fragments, String artist, String video){
+        String filepath = "./root/"+artist+"/"+video;
+
+        if(fragments == null) return com.wahwahnow.broker.io.FileReader.getRemainingFragments(filepath, -1);
+
+        // Get last fragment ID
+        int lastFragment = -1;
+        for(FragmentModel frag: fragments){
+            if(frag.getFragmentID() > lastFragment) lastFragment = frag.getFragmentID();
+        }
+
+        return com.wahwahnow.broker.io.FileReader.getRemainingFragments(filepath, lastFragment);
     }
 
 }

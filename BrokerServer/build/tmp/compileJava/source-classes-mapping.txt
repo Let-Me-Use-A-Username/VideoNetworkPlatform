@@ -18,17 +18,24 @@ com/wahwahnow/broker/models/ServerNode.java
  com.wahwahnow.broker.models.ServerNode
 com/wahwahnow/broker/io/VideoFiles.java
  com.wahwahnow.broker.io.VideoFiles
-com/wahwahnow/broker/routes/VideoRoutes.java
- com.wahwahnow.broker.routes.VideoRoutes
- com.wahwahnow.broker.routes.VideoRoutes$1
- com.wahwahnow.broker.routes.VideoRoutes$2
-com/wahwahnow/broker/Test.java
- com.wahwahnow.broker.Test
 com/wahwahnow/broker/BrokerData.java
  com.wahwahnow.broker.BrokerData
 com/wahwahnow/broker/Handler.java
  com.wahwahnow.broker.Handler
+com/wahwahnow/broker/models/FragmentModel.java
+ com.wahwahnow.broker.models.FragmentModel
+com/wahwahnow/broker/Test.java
+ com.wahwahnow.broker.Test
+com/wahwahnow/broker/io/FileReader.java
+ com.wahwahnow.broker.io.FileReader
+com/wahwahnow/broker/models/VideoFragments.java
+ com.wahwahnow.broker.models.VideoFragments
 com/wahwahnow/broker/Client.java
  com.wahwahnow.broker.Client
+ com.wahwahnow.broker.Client$1
 com/wahwahnow/broker/Server.java
  com.wahwahnow.broker.Server
+com/wahwahnow/broker/routes/VideoRoutes.java
+ com.wahwahnow.broker.routes.VideoRoutes
+ com.wahwahnow.broker.routes.VideoRoutes$1
+ com.wahwahnow.broker.routes.VideoRoutes$2
