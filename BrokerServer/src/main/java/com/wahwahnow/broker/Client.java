@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
+import com.wahwahnow.broker.io.VideoFiles;
 import com.wahwahnow.broker.models.FragmentModel;
 import com.wahwahnow.broker.models.VideoFragments;
 import org.mrmtp.rpc.Util;
@@ -17,6 +18,7 @@ import java.io.*;
 import java.lang.reflect.Type;
 import java.net.Socket;
 
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -24,6 +26,7 @@ import java.util.Map;
 public class Client {
 
     private static Gson gson = new Gson();
+    private static int HEADER_BUFFER_SIZE = 2048;
 
     private static void uploadVideo(String artistHash, String videoHash){
         Socket socket = null;
@@ -51,9 +54,9 @@ public class Client {
 
             InputStream in = socket.getInputStream();
             OutputStream out = socket.getOutputStream();
-            out.write(MRMTPBuilder.getMRMTPBuffer(header), 0, 1024);
-            byte[] resBuf = Util.getNewBuffer(null, 1024);
-            in.read(resBuf, 0, 1024);
+            out.write(MRMTPBuilder.getMRMTPBuffer(header, HEADER_BUFFER_SIZE), 0, HEADER_BUFFER_SIZE);
+            byte[] resBuf = Util.getNewBuffer(null, HEADER_BUFFER_SIZE);
+            in.read(resBuf, 0, HEADER_BUFFER_SIZE);
 
             MRMTPHeader resHeader = MRMTPParser.parse(resBuf);
 
@@ -94,10 +97,10 @@ public class Client {
             header.setBody(gson.toJson(resBody));
             header.setContentLength(header.getBody().length());
 
-            out.write(MRMTPBuilder.getMRMTPBuffer(header), 0, 1024);
+            out.write(MRMTPBuilder.getMRMTPBuffer(header, 2048), 0, HEADER_BUFFER_SIZE);
 
-            byte[] resBuf = Util.getNewBuffer(null, 1024);
-            in.read(resBuf, 0, 1024);
+            byte[] resBuf = Util.getNewBuffer(null, HEADER_BUFFER_SIZE);
+            in.read(resBuf, 0, HEADER_BUFFER_SIZE);
 
             // response total chunks
             MRMTPHeader response = MRMTPParser.parse(resBuf);
@@ -147,31 +150,37 @@ public class Client {
 
             // first contact
             if(videoFragments.getLastContactTimestamp() == 0){
+                resBody.put("buffering", true);
                 request.setBody(gson.toJson(resBody));
                 request.setContentLength(request.getBody().length());
-                out.write(MRMTPBuilder.getMRMTPBuffer(request), 0, 1024);
+                out.write(MRMTPBuilder.getMRMTPBuffer(request, HEADER_BUFFER_SIZE), 0, HEADER_BUFFER_SIZE);
 
-                byte[] resBuf = Util.getNewBuffer(null, 1024);
-                in.read(resBuf, 0, 1024);
+                byte[] resBuf = Util.getNewBuffer(null, HEADER_BUFFER_SIZE);
+                in.read(resBuf, 0, HEADER_BUFFER_SIZE);
 
                 MRMTPHeader response = MRMTPParser.parse(resBuf);
 
+                System.out.println("Server responded with body: \n"+response.getBody());
                 fragmentsTask(response, videoFragments, socket);
+
                 return;
             }
 
             long timestamp = System.currentTimeMillis();
             if(timestamp - videoFragments.getLastContactTimestamp() > 4) {
+                resBody.put("buffering", false);
                 resBody.put("currentSeek", videoFragments.getCurrentSeek());
                 request.setBody(gson.toJson(resBody));
                 request.setContentLength(request.getBody().length());
-                out.write(MRMTPBuilder.getMRMTPBuffer(request), 0, 1024);
+                out.write(MRMTPBuilder.getMRMTPBuffer(request, HEADER_BUFFER_SIZE), 0, HEADER_BUFFER_SIZE);
 
-                byte[] resBuf = Util.getNewBuffer(null, 1024);
-                in.read(resBuf, 0, 1024);
+                byte[] resBuf = Util.getNewBuffer(null, HEADER_BUFFER_SIZE);
+                in.read(resBuf, 0, HEADER_BUFFER_SIZE);
 
                 MRMTPHeader response = MRMTPParser.parse(resBuf);
-
+                
+                
+                System.out.println("Server responded with body: \n"+response.getBody());
                 fragmentsTask(response, videoFragments, socket);
             }
 
@@ -192,10 +201,17 @@ public class Client {
 
         int BUFFER_SIZE = jsObj.get("bufferSize").getAsInt();
 
+        System.out.println("Buffer size is "+BUFFER_SIZE);
+
         videoFragments.setLastContactTimestamp(System.currentTimeMillis());
-        for(int i = 0; i < fragmentIDs.size(); i++){
-            byte[] data = FileTransfer.downloadStream(BUFFER_SIZE, (int) fragmentIDs.get(i).getFragmentSize(),socket);
-            videoFragments.put(fragmentIDs.get(i).getFragmentID(), data);
+        for (FragmentModel fragmentID : fragmentIDs) {
+            System.out.println(fragmentID.getFragmentID()+": I am about to receive "+fragmentID.getFragmentSize() +" bytes.");
+            byte[] data = FileTransfer.downloadStream(BUFFER_SIZE, (int) fragmentID.getFragmentSize(), socket);
+            System.out.println((new String(data, StandardCharsets.UTF_8).substring(0, 100)));
+            videoFragments.put(fragmentID.getFragmentID(), data);
+            try{
+                Thread.sleep(50);
+            }catch (InterruptedException ignore) { }
         }
     }
 
@@ -213,17 +229,17 @@ public class Client {
 
         System.out.println("Total chunks are: "+videoFragments.getChunks()+"\tLast Fragment ID is: "+videoFragments.getLastFragmentID());
 
-//        while(true){
-//            if(videoFragments.isLastFragment()) break;
-//            getFragments(videoFragments, artist, video);
-//            Thread.sleep(1000);
-//            if(videoFragments.isLastFragment()) break;
-//            videoFragments.setCurrentSeek(videoFragments.getCurrentSeek() + 1);
-//        }
-//        for(Integer fragmentID: videoFragments.getChunkNumbers()){
-//            FileReader.createDirectoryPath("./clientTest");
-//            FileReader.writeFileData("./clientTest/"+fragmentID, videoFragments.getFragment(fragmentID), 0);
-//        }
+       // while(true){
+         //   if(videoFragments.isLastFragment()) break;
+            getFragments(videoFragments, artist, video);
+            Thread.sleep(1000);
+          //  if(videoFragments.isLastFragment()) break;
+           // videoFragments.setCurrentSeek(videoFragments.getCurrentSeek() + 1);
+        //}
+        for(Integer fragmentID: videoFragments.getChunkNumbers()){
+            org.mrmtp.rpc.filetransfer.FileReader.createDirectoryPath("./clientTest");
+            org.mrmtp.rpc.filetransfer.FileReader.writeFileData("./clientTest/"+fragmentID+".mp4", videoFragments.getFragment(fragmentID), 0);
+        }
     }
 
 }

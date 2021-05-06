@@ -15,9 +15,9 @@ public class FileReader {
 
             int fragmentIDo1 = Integer.parseInt(partsO1[0]);
             int fragmentIDo2 = Integer.parseInt(partsO2[0]);
-            if(fragmentIDo1 < fragmentIDo2){
+            if(fragmentIDo1 > fragmentIDo2){
                 return 1;
-            }else if (fragmentIDo1 > fragmentIDo2){
+            }else if (fragmentIDo1 < fragmentIDo2){
                 return -1;
             }
 
@@ -32,9 +32,9 @@ public class FileReader {
 
             int fragmentIDo1 = Integer.parseInt(partsO1[0]);
             int fragmentIDo2 = Integer.parseInt(partsO2[0]);
-            if(fragmentIDo1 > fragmentIDo2){
+            if(fragmentIDo1 < fragmentIDo2){
                 return 1;
-            }else if (fragmentIDo1 < fragmentIDo2){
+            }else if (fragmentIDo1 > fragmentIDo2){
                 return -1;
             }
 
@@ -67,6 +67,10 @@ public class FileReader {
         }
 
         if(!remainingFragments.isEmpty()) remainingFragments.sort(ascending());
+
+        for(String frag: remainingFragments){
+            System.out.println(frag);
+        }
 
         return remainingFragments;
     }

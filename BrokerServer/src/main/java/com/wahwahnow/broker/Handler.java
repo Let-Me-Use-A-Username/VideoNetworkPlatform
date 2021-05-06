@@ -16,6 +16,7 @@ public class Handler implements Runnable{
     private OutputStream out;
     private InputStream in;
     private boolean openedStreams;
+    private static int HEADER_BUFFER_SIZE = 2048;
 
     public Handler(Socket socket){
         this.socket = socket;
@@ -40,8 +41,8 @@ public class Handler implements Runnable{
         try {
             StringBuilder sb = new StringBuilder();
 
-            byte[] buffer = Util.getNewBuffer(null, 1024);;
-            int bytesRead = in.read(buffer, 0, 1024);
+            byte[] buffer = Util.getNewBuffer(null, 2048);;
+            int bytesRead = in.read(buffer, 0, 2048);
             if(bytesRead == -1) return;
 
             MRMTPHeader header = MRMTPParser.parse(buffer);
