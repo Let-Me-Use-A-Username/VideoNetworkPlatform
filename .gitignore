@@ -6,3 +6,4 @@ src/main/resources/root
 BrokerServer/src/main/resources/videos/*
 BrokerServer/build
 temp/
+clientTest/
