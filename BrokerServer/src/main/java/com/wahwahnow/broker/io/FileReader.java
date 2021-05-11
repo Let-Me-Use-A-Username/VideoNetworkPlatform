@@ -75,4 +75,8 @@ public class FileReader {
         return remainingFragments;
     }
 
+    public static boolean exists(String filepath) {
+        File f = new File(filepath);
+        return f.exists();
+    }
 }

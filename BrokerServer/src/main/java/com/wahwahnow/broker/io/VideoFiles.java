@@ -1,5 +1,7 @@
 package com.wahwahnow.broker.io;
 
+import org.mrmtp.rpc.filetransfer.FileReader;
+
 import java.io.*;
 import java.net.Socket;
 import java.nio.file.Files;
@@ -25,6 +27,62 @@ public class VideoFiles {
 
     public static void storeVideoMetadata(String videoName, String directory){
 
+    }
+
+    public static boolean uploadFile(String filepath, int FILE_BUFFER_SIZE, int FILE_SIZE, Socket socket) throws IOException {
+
+        OutputStream out = socket.getOutputStream();
+        InputStream in = socket.getInputStream();
+
+
+        int send = 0;
+        while (send < FILE_SIZE){
+            byte[] data = FileReader.readFileData(filepath, FILE_BUFFER_SIZE, FILE_SIZE, send);
+            if(data == null) return false;
+            out.write(data);
+            out.flush();
+            send += data.length;
+        }
+
+        System.out.println("Send "+send+" bytes");
+
+        return true;
+
+//        int chunks = FILE_SIZE / FILE_BUFFER_SIZE + (FILE_SIZE % FILE_BUFFER_SIZE == 0? 0 : 1);
+//        for(int i = 0; i < chunks; i++){
+//            byte[] data = FileReader.readFileData(filepath, FILE_BUFFER_SIZE, FILE_SIZE, i * FILE_BUFFER_SIZE);
+//            if(data == null) return false;
+//            out.write(data);
+//            out.flush();
+//        }
+
+        //return true;
+    }
+
+    public static boolean downloadFile(String filepath, int FILE_BUFFER_SIZE, int FILE_SIZE, Socket socket) throws IOException {
+        OutputStream out = socket.getOutputStream();
+        InputStream in = socket.getInputStream();
+
+        int collected = 0;
+        int count;
+        byte[] data = new byte[FILE_BUFFER_SIZE];
+        while((count = in.read(data)) > 0 && collected < FILE_SIZE) {
+            byte[] toStore = new byte[count];
+            System.arraycopy(
+                    data,
+                    0,
+                    toStore,
+                    0,
+                    count
+            );
+            FileReader.writeFileData(filepath, toStore, collected);
+            collected += count;
+            data = new byte[FILE_BUFFER_SIZE];
+        }
+
+        System.out.println("Received ");
+
+        return true;
     }
 
     public static byte[] downloadStream(int FILE_BUFFER_SIZE, int FILE_SIZE, Socket socket) throws IOException {

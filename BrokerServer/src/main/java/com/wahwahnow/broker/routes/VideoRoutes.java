@@ -73,7 +73,7 @@ public class VideoRoutes {
 
         });
 
-        // Stream video
+        // Send video buffers
         BrokerData.getInstance().getBrokerRouter().GET("/artist/video/fragments", ((socket, mrmtpHeader, s) -> {
             OutputStream out = socket.getOutputStream();
             InputStream in = socket.getInputStream();
@@ -130,25 +130,51 @@ public class VideoRoutes {
             responseHeader.setContentLength(responseHeader.getBody().length());
             out.write(MRMTPBuilder.getMRMTPBuffer(responseHeader, HEADER_BUFFER_SIZE), 0, HEADER_BUFFER_SIZE);
 
-            if(totalMissingFragments.size() != 0){
-                String directory = "./root/"+artist+"/"+video+"/";
-                int packetsToSend = hasCurrentSeek? 3 : 6;
-                for(int i = 0; i < packetsToSend && i < totalMissingFragments.size(); i++) {
-                    String filepath = directory + totalMissingFragments.get(i);
-                    System.out.println("Streaming "+filepath+"\nFilesize"+FileReader.getFileSize(filepath));
-                    FileTransfer.uploadFile(
-                            filepath,
-                            VIDEO_BUFFER,
-                            (int) FileReader.getFileSize(filepath),
-                            socket
-                    );
-                }
-            }
+//            if(totalMissingFragments.size() != 0){
+//                String directory = "./root/"+artist+"/"+video+"/";
+//                int packetsToSend = hasCurrentSeek? 3 : 6;
+//                for(int i = 0; i < packetsToSend && i < totalMissingFragments.size(); i++) {
+//                    String filepath = directory + totalMissingFragments.get(i);
+//                    System.out.println("Streaming "+filepath+"\nFilesize"+FileReader.getFileSize(filepath));
+//                    VideoFiles.uploadFile(
+//                            filepath,
+//                            VIDEO_BUFFER,
+//                            (int) FileReader.getFileSize(filepath),
+//                            socket
+//                    );
+//                    // Waiting got ACK before continuing
+//                    in.read();
+//                }
+//            }
 
             out.close();
             in.close();
             socket.close();
 
+        }));
+
+        // Send video fragment
+        BrokerData.getInstance().getBrokerRouter().GET("/artist/video/fragment/mp4", ((socket, mrmtpHeader, s) -> {
+            OutputStream out = socket.getOutputStream();
+            InputStream in = socket.getInputStream();
+
+            String body = mrmtpHeader.getBody();
+            JsonObject jsObj = JsonParser.parseString(body).getAsJsonObject();
+
+            String artist = jsObj.get("artist").getAsString();
+            String video  = jsObj.get("video").getAsString();
+            int fragmentID = jsObj.get("fragmentID").getAsInt();
+
+            String filepath = "root/" + artist + "/" + video + "/" + fragmentID +"_" + (fragmentID+10) + ".mp4";
+
+            if(com.wahwahnow.broker.io.FileReader.exists(filepath)){
+                int fileSize = (int) FileReader.getFileSize(filepath);
+                FileTransfer.uploadFile(filepath, VIDEO_BUFFER, fileSize, socket);
+            }
+
+            out.close();
+            in.close();
+            socket.close();
         }));
 
         // Upload video

@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
+import com.wahwahnow.broker.io.FileReader;
 import com.wahwahnow.broker.io.VideoFiles;
 import com.wahwahnow.broker.models.FragmentModel;
 import com.wahwahnow.broker.models.VideoFragments;
@@ -148,6 +149,9 @@ public class Client {
             OutputStream out = socket.getOutputStream();
             InputStream in = socket.getInputStream();
 
+            List<FragmentModel> fragmentIDs = null;
+            int bufferSize = 0;
+
             // first contact
             if(videoFragments.getLastContactTimestamp() == 0){
                 resBody.put("buffering", true);
@@ -160,59 +164,88 @@ public class Client {
 
                 MRMTPHeader response = MRMTPParser.parse(resBuf);
 
-                System.out.println("Server responded with body: \n"+response.getBody());
-                fragmentsTask(response, videoFragments, socket);
+                JsonObject jsObj = JsonParser.parseString(response.getBody()).getAsJsonObject();
+                Type listType = new TypeToken<List<FragmentModel>>(){}.getType();
+                fragmentIDs = gson.fromJson(jsObj.get("fragments"), listType);
+                bufferSize = jsObj.get("bufferSize").getAsInt();
 
-                return;
+
+            } else {
+                long timestamp = System.currentTimeMillis();
+                if(timestamp - videoFragments.getLastContactTimestamp() > 4) {
+                    resBody.put("buffering", false);
+                    resBody.put("currentSeek", videoFragments.getCurrentSeek());
+                    request.setBody(gson.toJson(resBody));
+                    request.setContentLength(request.getBody().length());
+                    out.write(MRMTPBuilder.getMRMTPBuffer(request, HEADER_BUFFER_SIZE), 0, HEADER_BUFFER_SIZE);
+
+                    byte[] resBuf = Util.getNewBuffer(null, HEADER_BUFFER_SIZE);
+                    in.read(resBuf, 0, HEADER_BUFFER_SIZE);
+
+                    MRMTPHeader response = MRMTPParser.parse(resBuf);
+
+                    JsonObject jsObj = JsonParser.parseString(response.getBody()).getAsJsonObject();
+                    Type listType = new TypeToken<List<FragmentModel>>(){}.getType();
+                    fragmentIDs = gson.fromJson(jsObj.get("fragments"), listType);
+                    bufferSize = jsObj.get("bufferSize").getAsInt();
+                }  else {
+                    return;
+                }
             }
 
-            long timestamp = System.currentTimeMillis();
-            if(timestamp - videoFragments.getLastContactTimestamp() > 4) {
-                resBody.put("buffering", false);
-                resBody.put("currentSeek", videoFragments.getCurrentSeek());
-                request.setBody(gson.toJson(resBody));
-                request.setContentLength(request.getBody().length());
-                out.write(MRMTPBuilder.getMRMTPBuffer(request, HEADER_BUFFER_SIZE), 0, HEADER_BUFFER_SIZE);
+            int BUFFER_SIZE = bufferSize;
 
-                byte[] resBuf = Util.getNewBuffer(null, HEADER_BUFFER_SIZE);
-                in.read(resBuf, 0, HEADER_BUFFER_SIZE);
+            out.close();
+            in.close();
+            socket.close();
 
-                MRMTPHeader response = MRMTPParser.parse(resBuf);
-                
-                
-                System.out.println("Server responded with body: \n"+response.getBody());
-                fragmentsTask(response, videoFragments, socket);
-            }
+            fragmentIDs.forEach((fragmentModel -> {
+                new Thread(() -> {
+                    try {
+                        fragmentsTask(videoFragments, fragmentModel, BUFFER_SIZE);
+                    } catch (IOException ignored) { }
+                }).start();
+            }));
 
-        }catch (IOException e){ }
+        }catch (IOException ignored){ }
 
     }
 
-    private static void fragmentsTask(MRMTPHeader response, VideoFragments videoFragments, Socket socket) throws IOException {
-        JsonObject jsObj = JsonParser.parseString(response.getBody()).getAsJsonObject();
+    private static void fragmentsTask(VideoFragments videoFragments, FragmentModel fragmentModel, int BUFFER_SIZE) throws IOException {
+        Socket socket = null;
+        String host = "192.168.84.1";
 
-        if(!jsObj.has("fragments")) {
-            videoFragments.setLastContactTimestamp(System.currentTimeMillis());
-            return;
-        }
+        MRMTPHeader request = new MRMTPHeader();
+        request.setDestination(host+":3000");
+        request.setKeepAlive(true);
+        request.setConnection(200);
+        request.setContentType("json");
+        request.setMethodType(MethodConstants.GET);
+        request.setMethod("/artist/video/fragment/mp4");
+        Map<String, Object> resBody = new HashMap<>();
+        resBody.put("artist", "7ae32df5e881e91bba528875c2985cb50b19e581");
+        resBody.put("video", "baa7cc4b59b64fbe619ff3696e068603d603329e");
+        resBody.put("fragmentID", fragmentModel.getFragmentID());
 
-        Type listType = new TypeToken<List<FragmentModel>>(){}.getType();
-        List<FragmentModel> fragmentIDs = gson.fromJson(jsObj.get("fragments"), listType);
+        try {
+            socket = new Socket(host, 3000);
+            OutputStream out = socket.getOutputStream();
+            InputStream in = socket.getInputStream();
 
-        int BUFFER_SIZE = jsObj.get("bufferSize").getAsInt();
+            request.setBody(gson.toJson(resBody));
+            request.setContentLength(request.getBody().length());
+            out.write(MRMTPBuilder.getMRMTPBuffer(request, HEADER_BUFFER_SIZE), 0, HEADER_BUFFER_SIZE);
 
-        System.out.println("Buffer size is "+BUFFER_SIZE);
+            org.mrmtp.rpc.filetransfer.FileReader.createDirectoryPath("./testVideo");
+            VideoFiles.downloadFile("./testVideo/"+fragmentModel.getFragmentID()+".mp4", BUFFER_SIZE, (int) fragmentModel.getFragmentSize(), socket);
+            //videoFragments.put(fragmentID.getFragmentID(), data);
 
-        videoFragments.setLastContactTimestamp(System.currentTimeMillis());
-        for (FragmentModel fragmentID : fragmentIDs) {
-            System.out.println(fragmentID.getFragmentID()+": I am about to receive "+fragmentID.getFragmentSize() +" bytes.");
-            byte[] data = FileTransfer.downloadStream(BUFFER_SIZE, (int) fragmentID.getFragmentSize(), socket);
-            System.out.println((new String(data, StandardCharsets.UTF_8).substring(0, 100)));
-            videoFragments.put(fragmentID.getFragmentID(), data);
-            try{
-                Thread.sleep(50);
-            }catch (InterruptedException ignore) { }
-        }
+            out.close();
+            in.close();
+            socket.close();
+
+        }catch (IOException ignored){ }
+
     }
 
     public static void main(String[] args) throws InterruptedException {
@@ -236,10 +269,10 @@ public class Client {
           //  if(videoFragments.isLastFragment()) break;
            // videoFragments.setCurrentSeek(videoFragments.getCurrentSeek() + 1);
         //}
-        for(Integer fragmentID: videoFragments.getChunkNumbers()){
-            org.mrmtp.rpc.filetransfer.FileReader.createDirectoryPath("./clientTest");
-            org.mrmtp.rpc.filetransfer.FileReader.writeFileData("./clientTest/"+fragmentID+".mp4", videoFragments.getFragment(fragmentID), 0);
-        }
+//        for(Integer fragmentID: videoFragments.getChunkNumbers()){
+//            org.mrmtp.rpc.filetransfer.FileReader.createDirectoryPath("./clientTest");
+//            org.mrmtp.rpc.filetransfer.FileReader.writeFileData("./clientTest/"+fragmentID+".mp4", videoFragments.getFragment(fragmentID), 0);
+//        }
     }
 
 }
