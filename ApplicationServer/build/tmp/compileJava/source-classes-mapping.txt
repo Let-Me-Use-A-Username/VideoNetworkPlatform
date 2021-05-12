@@ -1,25 +1,45 @@
+com/wahwahnow/models/BcryptModel.java
+ com.wahwahnow.models.BcryptModel
+com/wahwahnow/dao/UserDao.java
+ com.wahwahnow.dao.UserDao
+ com.wahwahnow.dao.UserDao$1
+com/wahwahnow/Test.java
+ com.wahwahnow.Test
+com/wahwahnow/models/ChannelAuth.java
+ com.wahwahnow.models.ChannelAuth
+com/wahwahnow/databases/SQLdialect.java
+ com.wahwahnow.databases.SQLDialect
+com/wahwahnow/databases/DatabaseController.java
+ com.wahwahnow.databases.DatabaseController
+com/wahwahnow/dao/ChannelDao.java
+ com.wahwahnow.dao.ChannelDao
+ com.wahwahnow.dao.ChannelDao$1
+com/wahwahnow/dao/AuthDao.java
+ com.wahwahnow.dao.AuthDao
+ com.wahwahnow.dao.AuthDao$1
+com/wahwahnow/databases/InsertQueries.java
+ com.wahwahnow.databases.InsertQueries
 com/wahwahnow/services/ChannelService.java
  com.wahwahnow.services.ChannelService
+com/wahwahnow/models/Users.java
+ com.wahwahnow.models.Users
 com/wahwahnow/controllers/ChannelController.java
  com.wahwahnow.controllers.ChannelController
 com/wahwahnow/controllers/HelloController.java
  com.wahwahnow.controllers.HelloController
-com/wahwahnow/Application.java
- com.wahwahnow.Application
-com/wahwahnow/databases/Tables.java
- com.wahwahnow.databases.Tables
 com/wahwahnow/models/Channel.java
  com.wahwahnow.models.Channel
-com/wahwahnow/databases/SQLdialect.java
- com.wahwahnow.databases.SQLDialect
 com/wahwahnow/databases/ExportQueries.java
  com.wahwahnow.databases.ExportQueries
-com/wahwahnow/databases/DatabaseController.java
- com.wahwahnow.databases.DatabaseController
-com/wahwahnow/Test.java
- com.wahwahnow.Test
-com/wahwahnow/dao/ChannelDao.java
- com.wahwahnow.dao.ChannelDao
- com.wahwahnow.dao.ChannelDao$1
-com/wahwahnow/databases/InsertQueries.java
- com.wahwahnow.databases.InsertQueries
+com/wahwahnow/databases/Tables.java
+ com.wahwahnow.databases.Tables
+com/wahwahnow/ConfigData.java
+ com.wahwahnow.ConfigData
+com/wahwahnow/services/UserService.java
+ com.wahwahnow.services.UserService
+com/wahwahnow/Utils.java
+ com.wahwahnow.Utils
+com/wahwahnow/Application.java
+ com.wahwahnow.Application
+com/wahwahnow/controllers/UserChannelController.java
+ com.wahwahnow.controllers.UserChannelController

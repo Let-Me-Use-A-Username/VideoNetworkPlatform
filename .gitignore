@@ -8,3 +8,4 @@ BrokerServer/build
 temp/
 clientTest/
 testVideo/
+ApplicationServer/build/

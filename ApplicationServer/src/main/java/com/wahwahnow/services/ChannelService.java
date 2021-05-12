@@ -16,4 +16,5 @@ public class ChannelService {
     public Collection<Channel> getAllChannels(){
         return channelDao.getAllChannels();
     }
+
 }

@@ -10,9 +10,9 @@ import java.util.HashMap;
 // Eager initialization singleton
 public class BrokerData {
 
-        private static final com.wahwahnow.broker.BrokerData instance = new com.wahwahnow.broker.BrokerData();
+    private static final BrokerData instance = new BrokerData();
 
-        private BrokerData(){
+    private BrokerData(){
             brokerRouter = new Router();
         }
 
