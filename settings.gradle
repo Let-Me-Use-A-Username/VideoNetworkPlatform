@@ -1,4 +1,5 @@
 rootProject.name = 'DistributedSystems'
 include 'BrokerServer'
 include 'ApplicationServer'
+include 'DSClient'
 
