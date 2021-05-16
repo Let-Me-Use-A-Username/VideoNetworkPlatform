@@ -5,7 +5,10 @@ import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
 import com.wahwahnow.broker.BrokerData;
+import com.wahwahnow.broker.controllers.BrokerFetch;
+import com.wahwahnow.broker.controllers.DatabaseController;
 import com.wahwahnow.broker.controllers.VideoController;
+import com.wahwahnow.broker.database.Queries;
 import com.wahwahnow.broker.io.VideoFiles;
 import com.wahwahnow.broker.models.FragmentModel;
 import com.wahwahnow.broker.models.VideoDirectory;
@@ -229,16 +232,42 @@ public class VideoRoutes {
         });
 
         // Delete artist
-        BrokerData.getInstance().getBrokerRouter().DELETE("/artist", new MethodCall() {
-            @Override
-            public void call(Socket socket, MRMTPHeader mrmtpHeader, String s) throws IOException {
-                OutputStream out = socket.getOutputStream();
-                InputStream in = socket.getInputStream();
+        BrokerData.getInstance().getBrokerRouter().DELETE("/artist", (socket, mrmtpHeader, s) -> {
+            OutputStream out = socket.getOutputStream();
+            InputStream in = socket.getInputStream();
 
-                out.write("The method to delete an artist has been called".getBytes(StandardCharsets.UTF_8));
-                out.flush();
-            }
+            out.write("The method to delete an artist has been called".getBytes(StandardCharsets.UTF_8));
+            out.flush();
         });
+
+        BrokerData.getInstance().getBrokerRouter().POST("/notify/newVideo", ((socket, mrmtpHeader, s) -> {
+            OutputStream out = socket.getOutputStream();
+            InputStream in = socket.getInputStream();
+
+            JsonObject jsObj = JsonParser.parseString(mrmtpHeader.getBody()).getAsJsonObject();
+
+            String artistHash = jsObj.get("artist").getAsString();
+            String videoHash = jsObj.get("video").getAsString();
+            String brokerSource = jsObj.has("brokerSource")? jsObj.get("brokerSource").getAsString() : "";
+
+            // Create directory
+            FileReader.createDirectoryPath("./"+BrokerData.getInstance().getBrokerID()+"/"+artistHash+"/"+videoHash);
+            // insert artist on sqlite
+            BrokerData.getInstance().getDB().executeQuery(Queries.insertUploader(artistHash, "./"+BrokerData.getInstance().getBrokerID()+"/"+artistHash));
+            // insert video on sqlite
+            BrokerData.getInstance().getDB().executeQuery(Queries.insertVideo(artistHash, videoHash, "./"+BrokerData.getInstance().getBrokerID()+"/"+artistHash+"/"+videoHash));
+
+            // if brokerSource is not empty string then we will fetch this from another broker
+            if(!brokerSource.isBlank()){
+                new Thread(()->{
+                    String[] parts = brokerSource.split(":");
+                    BrokerFetch.fetchVideo(parts[0], Integer.parseInt(parts[1]), videoHash);
+                }).start();
+            }
+
+        }));
+
+
     }
 
     private static void fragmentVideoFile(String filepath, String artist, String video){

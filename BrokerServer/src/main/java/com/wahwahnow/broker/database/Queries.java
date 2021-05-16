@@ -7,6 +7,11 @@ public class Queries {
                 + "VALUES (" + id + ", "+ videoPath + ");";
     }
 
+    public static String insertVideo(String id, String uploader_id, String videoPath){
+        return "INSERT INTO videos (id, uploader_id, videoPath) \n"
+                + "VALUES (" + id + ", "+ uploader_id + ", "+ videoPath+" );";
+    }
+
     public static String insertVideo(String id, String uploader_id, String videoPath, int chunks, float length, int height, int width, float framerate){
         return "INSERT INTO videos (id, uploader_id, videoPath, chunks, length, height, width, framerate) \n"
                 + "VALUES (" + id + ", "+ uploader_id + ", "+ videoPath +  ", "+ chunks + ", " + length + ", " + height + ", " + width + ", " + framerate +");";

@@ -28,6 +28,10 @@ public class Utils {
         return UUID.randomUUID().toString();
     }
 
+    public static String getSecret(){
+        return secret;
+    }
+
     public static BcryptModel genBcrypt(String password){
         BcryptModel bcryptModel = new BcryptModel();
         bcryptModel.password = password;

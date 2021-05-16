@@ -16,10 +16,10 @@ com/wahwahnow/models/VideoImagePreview.java
  com.wahwahnow.models.VideoImagePreview
 com/wahwahnow/ConfigData.java
  com.wahwahnow.ConfigData
-com/wahwahnow/controllers/HelloController.java
- com.wahwahnow.controllers.HelloController
-com/wahwahnow/Utils.java
- com.wahwahnow.Utils
+com/wahwahnow/dao/AuthDao.java
+ com.wahwahnow.dao.AuthDao
+com/wahwahnow/dao/ChannelDao.java
+ com.wahwahnow.dao.ChannelDao
 com/wahwahnow/controllers/VideoController.java
  com.wahwahnow.controllers.VideoController
 com/wahwahnow/models/Video.java
@@ -28,25 +28,37 @@ com/wahwahnow/models/BcryptModel.java
  com.wahwahnow.models.BcryptModel
 com/wahwahnow/models/Likes.java
  com.wahwahnow.models.Likes
-com/wahwahnow/Application.java
- com.wahwahnow.Application
+com/wahwahnow/models/Channel.java
+ com.wahwahnow.models.Channel
 com/wahwahnow/services/VideoService.java
  com.wahwahnow.services.VideoService
 com/wahwahnow/dao/UserDao.java
  com.wahwahnow.dao.UserDao
-com/wahwahnow/Test.java
- com.wahwahnow.Test
 com/wahwahnow/services/ChannelService.java
  com.wahwahnow.services.ChannelService
-com/wahwahnow/controllers/ChannelController.java
- com.wahwahnow.controllers.ChannelController
+com/wahwahnow/Test.java
+ com.wahwahnow.Test
+com/wahwahnow/controllers/BrokerController.java
+ com.wahwahnow.controllers.BrokerController
 com/wahwahnow/services/UserService.java
  com.wahwahnow.services.UserService
+com/wahwahnow/Application.java
+ com.wahwahnow.Application
+com/wahwahnow/ConsisteHashRing.java
+ com.wahwahnow.ConsisteHashRing
 com/wahwahnow/controllers/UserChannelController.java
  com.wahwahnow.controllers.UserChannelController
-com/wahwahnow/models/Channel.java
- com.wahwahnow.models.Channel
-com/wahwahnow/dao/ChannelDao.java
- com.wahwahnow.dao.ChannelDao
-com/wahwahnow/dao/AuthDao.java
- com.wahwahnow.dao.AuthDao
+com/wahwahnow/models/Broker.java
+ com.wahwahnow.models.Broker
+com/wahwahnow/BrokerConnection.java
+ com.wahwahnow.BrokerConnection
+com/wahwahnow/models/BrokerVideo.java
+ com.wahwahnow.models.BrokerVideo
+com/wahwahnow/Utils.java
+ com.wahwahnow.Utils
+com/wahwahnow/services/BrokerService.java
+ com.wahwahnow.services.BrokerService
+com/wahwahnow/dao/BrokerDao.java
+ com.wahwahnow.dao.BrokerDao
+com/wahwahnow/controllers/ChannelController.java
+ com.wahwahnow.controllers.ChannelController

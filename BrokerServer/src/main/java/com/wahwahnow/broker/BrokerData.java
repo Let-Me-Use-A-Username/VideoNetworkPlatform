@@ -1,6 +1,7 @@
 package com.wahwahnow.broker;
 
 import com.wahwahnow.broker.controllers.DatabaseController;
+import com.wahwahnow.broker.io.HttpRouter;
 import com.wahwahnow.broker.models.ServerNode;
 import com.wahwahnow.broker.models.VideoDirectory;
 import org.mrmtp.rpc.router.Router;
@@ -13,8 +14,9 @@ public class BrokerData {
     private static final BrokerData instance = new BrokerData();
 
     private BrokerData(){
-            brokerRouter = new Router();
-        }
+        httpRouter = new HttpRouter();
+        brokerRouter = new Router();
+    }
 
     public static synchronized BrokerData getInstance(){
         return instance;
@@ -24,7 +26,18 @@ public class BrokerData {
     private long chunkMaxSize = 1048576;
     private DatabaseController db;
     private ServerNode serverNode;
+    private String applicationAddress;
+    private int nodeCopies;
     private String brokerID;
+    private HttpRouter httpRouter;
+
+    public synchronized void setNodeCopies(int nodeCopies){
+        this.nodeCopies = nodeCopies;
+    }
+
+    public synchronized int getNodeCopies(){
+        return nodeCopies;
+    }
 
     public synchronized void setBrokerID(String brokerID){
         this.brokerID = brokerID;
@@ -50,8 +63,20 @@ public class BrokerData {
         return db;
     }
 
-    public synchronized void setDatabase(String filename, String osURL){
-        db = new DatabaseController(filename, osURL);
+    public synchronized void setDatabase(String filepath){
+        db = new DatabaseController(filepath);
+    }
+
+    public synchronized void setApplicationAddress(String address){
+        applicationAddress = address;
+    }
+
+    public synchronized String getApplicationAddress(){
+        return applicationAddress;
+    }
+
+    public synchronized HttpRouter getRouter(){
+        return httpRouter;
     }
 
 }

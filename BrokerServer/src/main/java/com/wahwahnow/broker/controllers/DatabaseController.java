@@ -2,6 +2,7 @@ package com.wahwahnow.broker.controllers;
 
 import com.wahwahnow.broker.database.Tables;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -13,9 +14,12 @@ public class DatabaseController {
     private String osURL;
     private String filename;
 
-    public DatabaseController(String filename, String osURL){
-        this.filename = filename;
-        this.osURL = osURL;
+    public DatabaseController(String filepath){
+        File f = new File(filepath);
+        osURL = f.getParent();
+        filename = f.getName();
+        System.out.println("Os url is "+osURL);
+        System.out.println("File name is "+filename);
         URL = "jdbc:sqlite:" + osURL + "/" + filename;
     }
 
@@ -48,6 +52,16 @@ public class DatabaseController {
             stmt.execute(Tables.CREATE_VIDEOS);
         } catch (SQLException e) {
             System.out.println(e.getMessage());
+        }
+    }
+
+    public boolean executeQuery(String sql) {
+        try(Connection conn = DriverManager.getConnection(URL);
+            Statement stmt = conn.createStatement()){
+            stmt.executeQuery(sql);
+            return true;
+        }catch (SQLException e){
+            return false;
         }
     }
 
