@@ -1,51 +1,58 @@
 package com.wahwahnow.dao;
 
 import com.wahwahnow.models.Channel;
+import com.wahwahnow.models.Video;
+import org.hibernate.Session;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.PersistenceContext;
 
 @Repository
 public class ChannelDao {
 
-    private static Map<String, Channel> channels;
+    @PersistenceContext
+    private EntityManager entityManager;
 
-    static {
-        channels = new HashMap<String, Channel>(){
-            {
-                put("1",new Channel(
-                        "1",
-                        "PewDiePie",
-                        "Let's Play Channel",
-                        new ArrayList<String>(Collections.singletonList("Gaming")),
-                        100,
-                        "19-05-1984"
-                ));
-                put("2",new Channel(
-                        "2",
-                        "HowToBasic",
-                        "Fucked up channel",
-                        new ArrayList<String>(Collections.singletonList("Entertainment")),
-                        69,
-                        "11-05-2019"
-                ));
-            }
-        };
+    @Transactional
+    public boolean createNewVideo(String id, String about, String channelName, int timestamp, String userid){
+        Session session = getSession();
+        Channel channel = new Channel(id, channelName, "", 0, timestamp, userid);
+        session.persist(channel);
+        return true;
     }
 
-    /*public Channel getChannelByName(){
-        for(Channel channel: channels.values()){
+    @Transactional
+    public Video postNewVideo(String id, String channelID, String name, String description){
+        Session session = getSession();
+        Video video = new Video(id, name, description, 0, 0, channelID, 0);
+        session.persist(video);
+        Video videoRes = session.getReference(Video.class, id);
+        if(videoRes.getChannelID().equals(channelID)){
+            return videoRes;
+        }
+        return null;
+    }
 
+    public String getChannelID(String channelName) {
+        Session session = getSession();
+        try {
+            Channel ch = (Channel) session.createQuery("FROM channel WHERE channel_name=:channelName")
+                    .setParameter("channelName", channelName)
+                    .getSingleResult();
+            return ch.getUserID();
+        }catch (NoResultException r){
+            return "";
         }
     }
 
-    public Collection<Channel> getChannelsByTag(){
-
-    }*/
-
-    //To be deleted..
-
-    public Collection<Channel> getAllChannels(){
-        return channels.values();
+    public Session getSession(){
+        Session session = null;
+        if(entityManager == null || (session = entityManager.unwrap(Session.class)) == null) {
+            throw new NullPointerException();
+        }
+        return session;
     }
 }

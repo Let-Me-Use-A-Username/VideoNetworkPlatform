@@ -12,27 +12,21 @@ Consumer/Producer:
 Application server:
 
 --mexri 25 --
-* Sqlite για login, register, video description, κλπ.
 * hashing and load_balancing
 * επικοινωνία με broker (san client gia arxi)
 -- ---
 
 * comments
-* handlers/controllers (xml)
 * επικοινωνία με broker
-* spring framework
 * search_utilities
 * hashing and load_balancing
 
 Broker -- mexri 25 --:
-* refactor se ksexora se modules
-* Upload
-* Stream (pull apo mobile)
-* caching algorithm for metadata (based on mem?? example 5%, 10% or 20% of the ram)
 * filesystem
-* video_seek [katallilo algorithmo] na vazoume sosta onomata gia efkoli anaktisi sto upload kai enan aplo algorithmo me to pou vriskete o xristis ti buffer exei klp
+* video_seek [katallilo algorithmo]
 * junit
-* na ftiaxtei se ksexoro project XMPRpc communication
 
--- argotera gia broker ---
-* jwt gia authorize kai gia na gnorizoun ta secret metaksi tous brokers kai application server
+Kyriaki:
+* epikoinonia application -> broker
+* broker -> stelnei oti einai active ston application
+* distribute se brokers (2 h' 3 antigrafa - kathorizete se config 2/3 ton broker exoun copies | p.x. 3 broker oi 2 exoun koino video)

@@ -9,3 +9,5 @@ temp/
 clientTest/
 testVideo/
 ApplicationServer/build/
+applicationServerDatabase.db
+DSClient/build/

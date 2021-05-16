@@ -1,26 +1,36 @@
 package com.wahwahnow.models;
 
-import java.util.ArrayList;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
-public class Channel {
+import java.io.Serializable;
 
-    private String channelName;
+@Table
+@Entity(name = "channel")
+public class Channel implements Serializable {
+
+    @Id
     private String id;
+    @Column(nullable = false, name="channel_name")
+    private String channelName;
     private String about;
-    private ArrayList<String> hashtagsIDs;
-    private int videosUploaded;
-    private String dateCreated; //timestamp
+    private Integer videosUploaded;
+    private Integer dateCreated; //timestamp
+    private String userID;
 
-    public Channel(String id, String channelName, String about, ArrayList<String> hashtagsIDs, int videosUploaded, String dateCreated) {
+
+    public Channel(String id, String channelName, String about, Integer videosUploaded, Integer dateCreated, String userID) {
         this.channelName = channelName;
         this.id = id;
         this.about = about;
-        this.hashtagsIDs = hashtagsIDs;
         this.videosUploaded = videosUploaded;
         this.dateCreated = dateCreated;
+        this.userID = userID;
     }
 
-    private void Channel(){}
+    public Channel(){}
 
     public String getChannelName() {
         return channelName;
@@ -46,27 +56,28 @@ public class Channel {
         this.about = about;
     }
 
-    public ArrayList<String> getHashtagsIDs() {
-        return hashtagsIDs;
-    }
 
-    public void setHashtagsIDs(ArrayList<String> hashtagsIDs) {
-        this.hashtagsIDs = hashtagsIDs;
-    }
-
-    public int getVideosUploaded() {
+    public Integer getVideosUploaded() {
         return videosUploaded;
     }
 
-    public void setVideosUploaded(int videosUploaded) {
+    public void setVideosUploaded(Integer videosUploaded) {
         this.videosUploaded = videosUploaded;
     }
 
-    public String getDateCreated() {
+    public Integer getDateCreated() {
         return dateCreated;
     }
 
-    public void setDateCreated(String dateCreated) {
+    public void setDateCreated(Integer dateCreated) {
         this.dateCreated = dateCreated;
+    }
+
+    public String getUserID() {
+        return userID;
+    }
+
+    public void setUserID(String userID) {
+        this.userID = userID;
     }
 }

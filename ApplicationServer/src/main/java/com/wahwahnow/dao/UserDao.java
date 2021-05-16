@@ -1,74 +1,73 @@
 package com.wahwahnow.dao;
 
 import com.wahwahnow.models.Users;
+import org.hibernate.Session;
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.*;
+import javax.persistence.EntityManager;
+import javax.persistence.NoResultException;
+import javax.persistence.PersistenceContext;
 
 @Repository
 public class UserDao {
 
-    private static Map<String, Users> users;
-
-    static {
-        users = new HashMap<>() {
-            {
-                put("1", new Users(
-                        "1",
-                        "PewDiePie",
-                        "pewdiepie@gmail.com"
-                ));
-                put("2", new Users(
-                        "2",
-                        "HowToBasic",
-                        "hwtb@gmail.com"
-                ));
-                put("3", new Users(
-                        "3",
-                        "SallyUp",
-                        "sallyUp@yahoo.com"
-                ));
-            }
-        };
-    }
-
-    public boolean userExists(String channelName){
-        return users.values()
-                .stream()
-                .anyMatch((u -> u.getChannelName().equals(channelName)));
-    }
+    @PersistenceContext
+    private EntityManager entityManager;
 
     public boolean userEmailExists(String email){
-        return users.values()
-                .stream()
-                .anyMatch((u -> u.getEmail().equalsIgnoreCase(email)));
+        Session session = getSession();
+        try {
+            Users user = (Users) session.createQuery("FROM users WHERE email=:email")
+                    .setParameter("email", email)
+                    .getSingleResult();
+            return true;
+        }catch (NoResultException r){
+            return false;
+        }
     }
-
-    public Users createUser(String uuid, String channelName, String email){
-        users.put(uuid, new Users(uuid, channelName, email));
-        return users.get(uuid);
+    @Transactional
+    public Users createUser(String uuid, String email){
+        Session session = getSession();
+        Users user = new Users(uuid, email);
+        session.persist(user);
+        return user;
     }
 
     public Users getUserByID(String id){
-        return users.get(id);
+        Session session = getSession();
+        try {
+            return (Users) session.createQuery("FROM users WHERE id=:id")
+                    .setParameter("id", id)
+                    .getSingleResult();
+        }catch (NoResultException r){
+            return null;
+        }
     }
 
     public Users getUserByEmail(String email){
-        return users.values()
-                .stream()
-                .filter(u -> u.getEmail().equals(email))
-                .findFirst()
-                .orElse(null);
+        Session session = getSession();
+        try {
+            return (Users) session.createQuery("FROM users WHERE email=:email")
+                    .setParameter("email", email)
+                    .getSingleResult();
+        }catch (NoResultException r){
+            return null;
+        }
+    }
+//
+//    public Users setChannelEmail(String id, String email){
+//        users.get(id).setEmail(email);
+//        return users.get(id);
+//    }
+//
+
+    public Session getSession(){
+        Session session = null;
+        if(entityManager == null || (session = entityManager.unwrap(Session.class)) == null) {
+            throw new NullPointerException();
+        }
+        return session;
     }
 
-    public Users setChannelEmail(String id, String email){
-        users.get(id).setEmail(email);
-        return users.get(id);
-    }
-
-    public void printUsers() {
-        users.values().forEach(u -> {
-            System.out.println(u.getChannelName()+" "+u.getEmail()+" "+u.getId());
-        });
-    }
 }

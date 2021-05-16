@@ -2,6 +2,7 @@ package com.wahwahnow.controllers;
 
 import com.wahwahnow.Utils;
 import com.wahwahnow.models.Users;
+import com.wahwahnow.services.ChannelService;
 import com.wahwahnow.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -19,45 +20,46 @@ public class UserChannelController {
 
     @Autowired
     private UserService userService;
+    @Autowired
+    private ChannelService channelService;
 
     @RequestMapping(value = "/login", method = RequestMethod.POST)
     public ResponseEntity login(@RequestBody Map<String, Object> payload){
+
         String email = (String) payload.get("email");
         String password = (String) payload.get("password");
 
         int status = userService.authenticate(email, password);
         Map<String, Object> res = new HashMap<>();
-        switch (status){
-            case 404:
-                res.put("msg", "User not found");
-                res.put("statusMsg", "USER_NOT_FOUND");
-                return ResponseEntity.status(status).body(res);
-            case 401:
+        switch (status) {
+            case 401 -> {
                 res.put("msg", "Invalid password");
                 res.put("statusMsg", "INVALID_PASSWORD");
                 return ResponseEntity.status(status).body(res);
-            case 200:
+            }
+            case 404 -> {
+                res.put("msg", "User not found");
+                res.put("statusMsg", "USER_NOT_FOUND");
+                return ResponseEntity.status(status).body(res);
+            }
+            case 200 -> {
                 Users user = userService.getUserByEmail(email);
-                String token = Utils.createToken(user.getChannelName());
-                if(!token.isBlank()){
+                // Get user's channel name
+                String token = Utils.createToken("");
+                if (!token.isBlank()) {
                     res.put("msg", "Success");
                     res.put("statusMsg", "LOGIN_SUCCESS");
                     return ResponseEntity.status(status)
                             .header("jwt", token)
                             .body(res);
                 }
+            }
         }
 
         // else server failure
         res.put("msg", "Something went wrong");
         res.put("statusMsg", "SERVER_ERROR");
         return ResponseEntity.status(502).body(res);
-    }
-
-    @RequestMapping(value = "/test", method = RequestMethod.GET)
-    public String test(){
-        userService.printUsers();
-        return "";
     }
 
     @RequestMapping(value = "/register", method = RequestMethod.POST)
@@ -67,7 +69,7 @@ public class UserChannelController {
         String password = (String) payload.get("password");
 
         Map<String, Object> res = new HashMap<>();
-        // user exists
+        // channel exists
         if(userService.userExists(channelName)) {
             res.put("msg", "User already exists");
             res.put("statusMsg", "USER_EXISTS");
@@ -85,12 +87,14 @@ public class UserChannelController {
         if(password.isBlank() || password.length() < 8){
             res.put("msg", "Bad password format");
             res.put("statusMsg", "BAD_PASSWORD_FORMAT");
-            return ResponseEntity.status(401).body(res);
+            return ResponseEntity.status(400).body(res);
         }
 
-        // create user
-        boolean status = userService.createUser(channelName, email, password);
-        if(status){
+        // create user and channel
+        boolean status = userService.createUser(email, password);
+        Users user = userService.getUserByEmail(email);
+        boolean status2 = channelService.createChannel(Utils.generateUUID(), "", channelName, (int) (System.currentTimeMillis() / 1000), user.getId());
+        if(status && status2){
             // respond success
             res.put("msg", "Channel created");
             res.put("statusMsg", "CHANNEL_CREATED");

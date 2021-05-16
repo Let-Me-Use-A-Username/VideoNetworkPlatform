@@ -1,16 +1,8 @@
 package com.wahwahnow;
 
-import com.wahwahnow.databases.DatabaseController;
-
 public class Test {
 
     public static void main(String[] args){
-
-        String filename = "ApplicationServerDatabase.db";
-        String osURL = "D:/DS/applicationServer/db";
-
-        DatabaseController dbc = new DatabaseController(filename, osURL);
-        dbc.createNewDatabase();
-        dbc.initializeApplicationServerTables();
+        System.out.println(Utils.base64(1241553312+""));
     }
 }

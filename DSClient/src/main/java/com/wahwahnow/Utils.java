@@ -13,9 +13,13 @@ public class Utils {
             BufferedReader br = new BufferedReader(new FileReader(f));
             String line = br.readLine();
             br.close();
-            return line;
+            return line.replace("\\s+", "").replace("\n", "").replace("\r", "");
         }catch (IOException e) {
+            e.printStackTrace();
             return null;
         }
     }
+
+
+
 }

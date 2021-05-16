@@ -21,23 +21,21 @@ public class BrokerData {
     }
 
     private Router brokerRouter;
-    private HashMap<String, String> users; // KEY: {String: userID: user} -> Value: {String: userFolder}
-    private HashMap<String, VideoDirectory[]> userVideos; // KEY: {String: userID: user} -> Value: {VideoModels}
-    private HashMap<String, String> videos; // KEY: {String: videoID: video} -> Value: {String: videoPath}
     private long chunkMaxSize = 1048576;
     private DatabaseController db;
     private ServerNode serverNode;
+    private String brokerID;
+
+    public synchronized void setBrokerID(String brokerID){
+        this.brokerID = brokerID;
+    }
+
+    public synchronized String getBrokerID(){
+        return brokerID;
+    }
 
     public synchronized Router getBrokerRouter(){
         return brokerRouter;
-    }
-
-    public long getChunkMaxSize() {
-        return chunkMaxSize;
-    }
-
-    public void setChunkMaxSize(long chunkMaxSize) {
-        this.chunkMaxSize = chunkMaxSize;
     }
 
     public ServerNode getServerNode(){

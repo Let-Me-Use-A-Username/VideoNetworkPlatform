@@ -1,16 +1,22 @@
 package com.wahwahnow.models;
 
-public class Users {
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
+import java.io.Serializable;
 
+@Table
+@Entity(name = "users")
+public class Users implements Serializable {
+
+    @Id
     private String id;
-    private String channelName;
     private String email;
 
     public Users(){ }
 
-    public Users(String id, String channelName, String email) {
+    public Users(String id, String email) {
         this.id = id;
-        this.channelName = channelName;
         this.email = email;
     }
 
@@ -20,14 +26,6 @@ public class Users {
 
     public void setId(String id) {
         this.id = id;
-    }
-
-    public String getChannelName() {
-        return channelName;
-    }
-
-    public void setChannelName(String channelName) {
-        this.channelName = channelName;
     }
 
     public String getEmail() {

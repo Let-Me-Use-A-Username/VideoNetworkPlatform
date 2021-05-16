@@ -7,13 +7,15 @@ import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.DecodedJWT;
 import com.wahwahnow.models.BcryptModel;
-import com.wahwahnow.models.ChannelAuth;
+import com.wahwahnow.models.UserAuth;
 import org.springframework.security.crypto.bcrypt.*;
 
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.UUID;
 
 public class Utils {
@@ -34,8 +36,9 @@ public class Utils {
         return bcryptModel;
     }
 
-    public static boolean authBcrypt(String password, ChannelAuth cAuth){
-        return BCrypt.checkpw(password, cAuth.getPassword());
+    public static boolean authBcrypt(String password, UserAuth cAuth){
+        System.out.println("Password is "+password+" has will be "+BCrypt.hashpw(password, BCrypt.gensalt(12)).toString()+" stored: "+cAuth.getHash());
+        return BCrypt.checkpw(password, cAuth.getHash());
     }
 
     public static String readSecret(String filepath){
@@ -78,6 +81,14 @@ public class Utils {
         } catch (JWTVerificationException exception){
             return "";
         }
+    }
+
+    public static String base64(String strNumber){
+        return Base64.getEncoder().encodeToString((strNumber).getBytes(StandardCharsets.UTF_8));
+    }
+
+    public static String sha1(String stringToDigest){
+        return org.apache.commons.codec.digest.DigestUtils.sha1Hex(stringToDigest);
     }
 
 

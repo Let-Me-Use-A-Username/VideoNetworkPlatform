@@ -20,6 +20,7 @@ public class Server implements Runnable{
 
     public void run(){
         VideoRoutes.init();
+        BrokerData.getInstance().setBrokerID(serverInfo.getBrokerID());
         BrokerData.getInstance().setServerNode(serverInfo.getAddress(), serverInfo.getPort());
         if(openServer()) accept();
         else SystemLogger.Log("Couldn't open server at "+serverInfo.out());

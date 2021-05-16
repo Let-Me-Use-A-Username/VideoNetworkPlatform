@@ -1,4 +1,4 @@
-package com.wahwahnow.databases;
+package com.wahwahnow.database;
 
 import java.sql.Types;
 
@@ -8,7 +8,7 @@ import org.hibernate.dialect.function.SQLFunctionTemplate;
 import org.hibernate.dialect.function.VarArgsSQLFunction;
 import org.hibernate.type.StringType;
 
-class SQLDialect extends Dialect {
+public class SQLDialect extends Dialect {
     public SQLDialect() {
         registerColumnType(Types.BIT, "integer");
         registerColumnType(Types.TINYINT, "tinyint");
