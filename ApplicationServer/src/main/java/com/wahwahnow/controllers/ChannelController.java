@@ -67,6 +67,11 @@ public class ChannelController {
         ConsisteHashRing ring = new ConsisteHashRing(brokerList, Utils.getSecret());
         for(int copies = videoCopies ; copies > 0; copies--){
             Broker broker = ring.getBroker(videoHash);
+            if(!BrokerConnection.checkAlive(broker)){
+                ring.removeBroker(broker, Utils.getSecret());
+                continue;
+            }
+
             final Broker source = firstBroker != null? new Broker(firstBroker) : null;
             new Thread(() -> {
                 BrokerConnection.notifyBrokerTopic(artistHash, videoHash, broker, source);
@@ -75,7 +80,7 @@ public class ChannelController {
             ring.removeBroker(broker, Utils.getSecret());
         }
 
-        if(success){
+        if(success && firstBroker != null){
             res.put("msg", "Success");
             res.put("artist", artistHash);
             res.put("video", videoHash);

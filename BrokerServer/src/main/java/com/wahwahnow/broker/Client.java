@@ -4,7 +4,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
-import com.wahwahnow.broker.io.FileReader;
 import com.wahwahnow.broker.io.VideoFiles;
 import com.wahwahnow.broker.models.FragmentModel;
 import com.wahwahnow.broker.models.VideoFragments;
@@ -19,7 +18,6 @@ import java.io.*;
 import java.lang.reflect.Type;
 import java.net.Socket;
 
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

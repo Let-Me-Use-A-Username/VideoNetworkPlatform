@@ -75,10 +75,7 @@ public class CLI implements Runnable{
      * (user has to login or create account)
      */
     private void uploadVideo(){
-//        if(ClientData.getInstance().getJwt().isBlank()) {
-//            Log("Please login in order to upload a video.");
-//            return;
-//        }
+
         String absolutePath = readString("Give absolute path of video file: ");
         // send request to application server
         String videoName = readString("Give video name: ");
@@ -96,6 +93,11 @@ public class CLI implements Runnable{
             switch (res.statusCode){
                 case 200 -> {
                     // success now send data to broker
+                    JsonObject jsonObject = new JsonObject();
+                    String brokerAdress = jsonObject.get("uploadServer").getAsString();
+                    String artist = jsonObject.get("artist").getAsString();
+                    String video = jsonObject.get("video").getAsString();
+                    MRMTPClient.uploadVideo(artist, video, brokerAdress, absolutePath);
                 }
                 case 401 -> {
                     // jwt is expired or not provided
@@ -108,8 +110,6 @@ public class CLI implements Runnable{
                 }
             }
         }catch (IOException e){ }
-
-        // get our hashes and send them to the broker
 
     }
 
@@ -157,7 +157,8 @@ public class CLI implements Runnable{
                 case 200 -> {
                     Log("Login successful");
                     // parse jwt
-                    ClientData.getInstance().setJWT((String) res.headers.get("jwt"));
+                    List<Object> val = (List<Object>) res.headers.get("jwt");
+                    ClientData.getInstance().setJWT((String) val.get(0));
                 }
                 case 401 -> {
                     Log("Invalid credentials.");

@@ -10,11 +10,10 @@ public class VideoDirectory {
     private int width;
     private float length;
     private float framerate;
-    private long hits;
 
     public VideoDirectory(){}
 
-    public VideoDirectory(String id, String uploaderID, int chunks, String videoPath, int height, int width, float length, float framerate, long hits) {
+    public VideoDirectory(String id, String uploaderID, int chunks, String videoPath, int height, int width, float length, float framerate) {
         this.id = id;
         this.uploaderID = uploaderID;
         this.chunks = chunks;
@@ -23,7 +22,6 @@ public class VideoDirectory {
         this.width = width;
         this.length = length;
         this.framerate = framerate;
-        this.hits = hits;
     }
 
     public String getId() {
@@ -88,14 +86,6 @@ public class VideoDirectory {
 
     public void setFramerate(float framerate) {
         this.framerate = framerate;
-    }
-
-    public long getHits(){
-        return hits;
-    }
-
-    public void setHits(long hits){
-        this.hits = hits;
     }
 
 

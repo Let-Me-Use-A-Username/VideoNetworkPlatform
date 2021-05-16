@@ -51,7 +51,7 @@ public class VideoRoutes {
             String artistHash = jsObj.get("artist").getAsString();
             String videoHash = jsObj.get("video").getAsString();
 
-            String videoDirectory = "./root/"+artistHash+"/"+videoHash;
+            String videoDirectory = "./"+BrokerData.getInstance().getBrokerID()+"/"+artistHash+"/"+videoHash;
             // get total fragment files from the video directory
             int totalFragments = org.mrmtp.rpc.filetransfer.FileReader.getTotalDirectoryFiles(videoDirectory);
             // get the id of the last fragment
@@ -108,9 +108,6 @@ public class VideoRoutes {
                 responseHeader.setBody(
                         getVideoFragmentsJson(totalMissingFragments, artist, video, 6, VIDEO_BUFFER)
                 );
-                //TODO:
-                // send packets
-                // implement ...
             }
             // check if we should send 3 more
             else if(hasFragments && hasCurrentSeek){
@@ -122,9 +119,6 @@ public class VideoRoutes {
                     responseHeader.setBody(
                             getVideoFragmentsJson(totalMissingFragments, artist, video, 3, VIDEO_BUFFER)
                     );
-
-                    // TODO:
-                    // implement ...
                 }
             } else {
                 responseHeader.setBody("");
@@ -132,23 +126,6 @@ public class VideoRoutes {
 
             responseHeader.setContentLength(responseHeader.getBody().length());
             out.write(MRMTPBuilder.getMRMTPBuffer(responseHeader, HEADER_BUFFER_SIZE), 0, HEADER_BUFFER_SIZE);
-
-//            if(totalMissingFragments.size() != 0){
-//                String directory = "./root/"+artist+"/"+video+"/";
-//                int packetsToSend = hasCurrentSeek? 3 : 6;
-//                for(int i = 0; i < packetsToSend && i < totalMissingFragments.size(); i++) {
-//                    String filepath = directory + totalMissingFragments.get(i);
-//                    System.out.println("Streaming "+filepath+"\nFilesize"+FileReader.getFileSize(filepath));
-//                    VideoFiles.uploadFile(
-//                            filepath,
-//                            VIDEO_BUFFER,
-//                            (int) FileReader.getFileSize(filepath),
-//                            socket
-//                    );
-//                    // Waiting got ACK before continuing
-//                    in.read();
-//                }
-//            }
 
             out.close();
             in.close();
@@ -168,7 +145,7 @@ public class VideoRoutes {
             String video  = jsObj.get("video").getAsString();
             int fragmentID = jsObj.get("fragmentID").getAsInt();
 
-            String filepath = "root/" + artist + "/" + video + "/" + fragmentID +"_" + (fragmentID+10) + ".mp4";
+            String filepath = "./"+BrokerData.getInstance().getBrokerID()+"/" + artist + "/" + video + "/" + fragmentID +"_" + (fragmentID+10) + ".mp4";
 
             if(com.wahwahnow.broker.io.FileReader.exists(filepath)){
                 int fileSize = (int) FileReader.getFileSize(filepath);
@@ -192,30 +169,46 @@ public class VideoRoutes {
             String video = jsObj.get("video").getAsString();
             int FILE_SIZE = jsObj.get("fileSize").getAsInt();
 
+            // check if we have it on the database
+            List<VideoDirectory> videoList = BrokerData.getInstance().getDB().getVideos(Queries.getVideo(video));
+
             // Create a response header
             MRMTPHeader responseHeader = new MRMTPHeader();
             responseHeader.setDestination(socket.getRemoteSocketAddress().toString());
             responseHeader.setSource(BrokerData.getInstance().getServerNode().out());
             responseHeader.setKeepAlive(true);
-            responseHeader.setConnection(200);
-            responseHeader.setContentType("json");
-            responseHeader.setMethodType(MethodConstants.POST);
-            responseHeader.setMethod("/artist/video");
-            responseHeader.setBody("{ \"bufferSize\": "+VIDEO_BUFFER+" }");
-            // Send response
-            out.write(MRMTPBuilder.getMRMTPBuffer(responseHeader, HEADER_BUFFER_SIZE), 0, HEADER_BUFFER_SIZE);
 
-            // create directory
-            FileReader.createDirectoryPath("./temp");
 
-            String filepath = "./temp/"+artist+"-"+video+".mp4";
-            // Get video from client
-            FileTransfer.downloadFile(filepath, VIDEO_BUFFER, FILE_SIZE, socket);
-            // Start a thread (TODO: make a process and communicate with IPC to call ffmpeg on the file)
-            Runnable task = () -> {
-                fragmentVideoFile(filepath, artist, video);
-            };
-            new Thread(task).start();
+            if(videoList.size() > 0){
+                responseHeader.setConnection(200);
+                responseHeader.setContentType("json");
+                responseHeader.setMethodType(MethodConstants.POST);
+                responseHeader.setMethod("/artist/video");
+                responseHeader.setBody("{ \"bufferSize\": "+VIDEO_BUFFER+" }");
+
+                // Send response
+                out.write(MRMTPBuilder.getMRMTPBuffer(responseHeader, HEADER_BUFFER_SIZE), 0, HEADER_BUFFER_SIZE);
+
+                // create directory
+                FileReader.createDirectoryPath("./"+BrokerData.getInstance().getBrokerID()+"/temp");
+
+                String filepath = "./"+BrokerData.getInstance().getBrokerID()+"/temp/"+artist+"-"+video+".mp4";
+                // Get video from client
+                FileTransfer.downloadFile(filepath, VIDEO_BUFFER, FILE_SIZE, socket);
+                // Start a thread (TODO: make a process and communicate with IPC to call ffmpeg on the file)
+                new Thread(()->{
+                    fragmentVideoFile(filepath, artist, video);
+                }).start();
+
+            } else {
+                responseHeader.setConnection(404);
+                responseHeader.setContentType("json");
+                responseHeader.setMethodType(MethodConstants.POST);
+                responseHeader.setMethod("/artist/video");
+
+                // Send response
+                out.write(MRMTPBuilder.getMRMTPBuffer(responseHeader, HEADER_BUFFER_SIZE), 0, HEADER_BUFFER_SIZE);
+            }
 
         });
 
@@ -240,6 +233,7 @@ public class VideoRoutes {
             out.flush();
         });
 
+        // Be notified by server
         BrokerData.getInstance().getBrokerRouter().POST("/notify/newVideo", ((socket, mrmtpHeader, s) -> {
             OutputStream out = socket.getOutputStream();
             InputStream in = socket.getInputStream();
@@ -249,6 +243,12 @@ public class VideoRoutes {
             String artistHash = jsObj.get("artist").getAsString();
             String videoHash = jsObj.get("video").getAsString();
             String brokerSource = jsObj.has("brokerSource")? jsObj.get("brokerSource").getAsString() : "";
+
+            out.close();
+            in.close();
+            socket.close();
+
+            System.out.println("I will work on artist: "+artistHash+"\t and video: "+videoHash);
 
             // Create directory
             FileReader.createDirectoryPath("./"+BrokerData.getInstance().getBrokerID()+"/"+artistHash+"/"+videoHash);
@@ -267,6 +267,13 @@ public class VideoRoutes {
 
         }));
 
+        BrokerData.getInstance().getBrokerRouter().GET("/checkAlive",  ((socket, mrmtpHeader, s) ->{
+            OutputStream out = socket.getOutputStream();
+            InputStream in = socket.getInputStream();
+            out.close();
+            in.close();
+            socket.close();
+        }));
 
     }
 
@@ -274,12 +281,10 @@ public class VideoRoutes {
         File file = new File(filepath);
         // Fragmentation (upload)
         // Transfer some logic to the application server and some to the broker handler
-        // TODO: make root a Broker id
-        String videoDirectoryPath = "./root/"+artist+"/"+video;
+        String videoDirectoryPath = "./"+BrokerData.getInstance().getBrokerID()+"/"+artist+"/"+video;
         VideoDirectory videoDirectory = new VideoDirectory();
         videoDirectory.setUploaderID(artist);
         videoDirectory.setVideoPath(videoDirectoryPath);
-        videoDirectory.setHits(0);
         videoDirectory.setId(video);
         MultimediaObject sourceObj = new MultimediaObject(file);
         try {
@@ -316,7 +321,7 @@ public class VideoRoutes {
 
     // Build response header for the fragments
     private static String getVideoFragmentsJson(ArrayList<String> missingFragments, String artist, String video, int maxFragments, int BUFFER_SIZE){
-        String directory = "./root/"+artist+"/"+video+"/";
+        String directory = "./"+BrokerData.getInstance().getBrokerID()+"/"+artist+"/"+video+"/";
         // get total missing fragments (sorted)
 
         // Build body to send
@@ -339,7 +344,7 @@ public class VideoRoutes {
 
     // check directory if there more fragments to get and return how many he doesn't have
     private static ArrayList<String> getFragmentNumberToStillGet(List<FragmentModel> fragments, String artist, String video){
-        String filepath = "./root/"+artist+"/"+video;
+        String filepath = "./"+BrokerData.getInstance().getBrokerID()+"/"+artist+"/"+video;
 
         if(fragments == null) return com.wahwahnow.broker.io.FileReader.getRemainingFragments(filepath, -1);
 

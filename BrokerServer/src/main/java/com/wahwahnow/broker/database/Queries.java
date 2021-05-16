@@ -27,4 +27,7 @@ public class Queries {
                 "WHERE videos.id = " + id + ";";
     }
 
+    public static String getVideo(String video) {
+        return "SELECT * FROM videos WHERE id = "+video+";";
+    }
 }
