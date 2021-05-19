@@ -1,8 +1,8 @@
 {
-  "address": "192.168.1.7",
+  "address": "192.168.1.2",
   "port": "3004",
   "brokerID": "brokerDS_3",
   "nodeCopies": 4,
-  "applicationServer": "192.168.1.7:8080",
+  "applicationServer": "192.168.1.2:8080",
   "sqlite": "D:\\DS\\brokers\\db\\Broker3.db"
 }

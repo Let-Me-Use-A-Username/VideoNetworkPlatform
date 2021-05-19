@@ -7,6 +7,7 @@ import com.wahwahnow.models.Broker;
 import com.wahwahnow.models.Video;
 import com.wahwahnow.services.BrokerService;
 import com.wahwahnow.services.ChannelService;
+import com.wahwahnow.services.VideoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +26,13 @@ public class ChannelController {
     private ChannelService channelService;
     @Autowired
     private BrokerService brokerService;
+    @Autowired
+    private VideoService videoService;
+
+    @RequestMapping(value = "/search/user/{channelName}")
+    public void searchByUser(@PathVariable String channelName){
+
+    }
 
     @RequestMapping(value = "/upload", method = RequestMethod.POST)
     public ResponseEntity uploadVideo(@RequestBody Map<String, Object> payload, @RequestHeader("jwt") String jwt){
@@ -38,13 +46,17 @@ public class ChannelController {
         Integer tagID = (Integer) payload.get("tagID");
 
         // get channel id
+        System.out.println("Channel name is "+channelName);
         String channelID = channelService.getChannelID(channelName);
 
         int tries = 15;
         boolean success = false;
         Video video = null;
+        // TODO: Later on move it to a MessageQueue Server
+        String videoHash = null;
         while (tries > 0){
-            video = channelService.postVideo(Utils.base64(System.currentTimeMillis()+""),channelID, videoName, description);
+            videoHash = Utils.sha1(Utils.base64(System.currentTimeMillis()+""));
+            video = videoService.postVideo(videoHash, channelID, videoName, description);
             if(video != null) {
                 success = true;
                 break;
@@ -52,11 +64,14 @@ public class ChannelController {
             tries--;
         }
 
+        if(!success){
+            res.put("msg", "Failed to Process video");
+            res.put("statusMsg", "SERVER_ERROR");
+            return ResponseEntity.status(502).body(res);
+        }
+
         // hash artist (sha1(channelName)
         String artistHash = Utils.sha1(channelName);
-        // hash video (sha1(id))
-        String videoHash = Utils.sha1(video.getId());
-
 
         List<Broker> brokerList = brokerService.getBrokers();
         if(brokerList.size() <= 0) {
@@ -64,8 +79,11 @@ public class ChannelController {
         }
 
         Broker firstBroker = null;
+        System.out.println("Broker list is "+brokerList.toString());
+        // TODO: Later on move it to a MessageQueue Server
         ConsisteHashRing ring = new ConsisteHashRing(brokerList, Utils.getSecret());
         for(int copies = videoCopies ; copies > 0; copies--){
+            if(ring.size() == 0) break;
             Broker broker = ring.getBroker(videoHash);
             if(!BrokerConnection.checkAlive(broker)){
                 ring.removeBroker(broker, Utils.getSecret());
@@ -73,14 +91,18 @@ public class ChannelController {
             }
 
             final Broker source = firstBroker != null? new Broker(firstBroker) : null;
+            final String video_hash = videoHash;
             new Thread(() -> {
-                BrokerConnection.notifyBrokerTopic(artistHash, videoHash, broker, source);
+                BrokerConnection.notifyBrokerTopic(artistHash, video_hash, broker, source);
             }).start();
-            if(copies == videoCopies) firstBroker = broker;
+            if(firstBroker == null) {
+                System.out.println("Initializing broker");
+                firstBroker = broker;
+            }
             ring.removeBroker(broker, Utils.getSecret());
         }
 
-        if(success && firstBroker != null){
+        if(firstBroker != null){
             res.put("msg", "Success");
             res.put("artist", artistHash);
             res.put("video", videoHash);

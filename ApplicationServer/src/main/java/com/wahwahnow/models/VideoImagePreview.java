@@ -17,8 +17,8 @@ public class VideoImagePreview implements Serializable {
     public VideoImagePreview(){}
 
     public VideoImagePreview(String videoID, byte[] data) {
-        this.data = data;
         this.videoID = videoID;
+        this.data = data;
     }
 
 

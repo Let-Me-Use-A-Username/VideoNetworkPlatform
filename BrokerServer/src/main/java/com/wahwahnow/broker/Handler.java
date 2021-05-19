@@ -46,6 +46,7 @@ public class Handler implements Runnable{
             if(bytesRead == -1) return;
 
             MRMTPHeader header = MRMTPParser.parse(buffer);
+            SystemLogger.Log(" "+socket.getInetAddress().getAddress().toString()+" "+header.getMethodType().TYPE()+" "+header.getMethod());
             BrokerData.getInstance().getBrokerRouter().call(socket, header.getMethod(), header, "");
 
         } catch (IOException e) {

@@ -11,3 +11,5 @@ testVideo/
 ApplicationServer/build/
 applicationServerDatabase.db
 DSClient/build/
+docs/CrewTodos
+brokerDS_**/

@@ -2,63 +2,63 @@ com/wahwahnow/models/Comments.java
  com.wahwahnow.models.Comments
 com/wahwahnow/dao/BrokerDao.java
  com.wahwahnow.dao.BrokerDao
-com/wahwahnow/ConsisteHashRing.java
- com.wahwahnow.ConsisteHashRing
-com/wahwahnow/controllers/UserChannelController.java
- com.wahwahnow.controllers.UserChannelController
-com/wahwahnow/dao/VideoDao.java
- com.wahwahnow.dao.VideoDao
+com/wahwahnow/models/UserAuth.java
+ com.wahwahnow.models.UserAuth
+com/wahwahnow/models/Channel.java
+ com.wahwahnow.models.Channel
+com/wahwahnow/models/VideoImagePreview.java
+ com.wahwahnow.models.VideoImagePreview
 com/wahwahnow/models/VideoTag.java
  com.wahwahnow.models.VideoTag
 com/wahwahnow/models/ChannelProfileImage.java
  com.wahwahnow.models.ChannelProfileImage
-com/wahwahnow/services/ChannelService.java
- com.wahwahnow.services.ChannelService
+com/wahwahnow/services/UserService.java
+ com.wahwahnow.services.UserService
 com/wahwahnow/models/Users.java
  com.wahwahnow.models.Users
 com/wahwahnow/models/Video.java
  com.wahwahnow.models.Video
 com/wahwahnow/ConfigData.java
  com.wahwahnow.ConfigData
-com/wahwahnow/Utils.java
- com.wahwahnow.Utils
-com/wahwahnow/controllers/VideoController.java
- com.wahwahnow.controllers.VideoController
-com/wahwahnow/models/Likes.java
- com.wahwahnow.models.Likes
+com/wahwahnow/services/BrokerService.java
+ com.wahwahnow.services.BrokerService
 com/wahwahnow/Test.java
  com.wahwahnow.Test
-com/wahwahnow/controllers/BrokerController.java
- com.wahwahnow.controllers.BrokerController
+com/wahwahnow/models/Likes.java
+ com.wahwahnow.models.Likes
+com/wahwahnow/ConsisteHashRing.java
+ com.wahwahnow.ConsisteHashRing
+com/wahwahnow/dao/UserDao.java
+ com.wahwahnow.dao.UserDao
 com/wahwahnow/models/BcryptModel.java
  com.wahwahnow.models.BcryptModel
-com/wahwahnow/services/UserService.java
- com.wahwahnow.services.UserService
+com/wahwahnow/BrokerConnection.java
+ com.wahwahnow.BrokerConnection
 com/wahwahnow/Application.java
  com.wahwahnow.Application
-com/wahwahnow/services/VideoService.java
- com.wahwahnow.services.VideoService
-com/wahwahnow/dao/ChannelDao.java
- com.wahwahnow.dao.ChannelDao
+com/wahwahnow/Utils.java
+ com.wahwahnow.Utils
+com/wahwahnow/database/SQLDialect.java
+ com.wahwahnow.database.SQLDialect
 com/wahwahnow/models/Broker.java
  com.wahwahnow.models.Broker
 com/wahwahnow/dao/AuthDao.java
  com.wahwahnow.dao.AuthDao
-com/wahwahnow/database/SQLDialect.java
- com.wahwahnow.database.SQLDialect
+com/wahwahnow/services/ChannelService.java
+ com.wahwahnow.services.ChannelService
+com/wahwahnow/controllers/VideoController.java
+ com.wahwahnow.controllers.VideoController
+com/wahwahnow/dao/ChannelDao.java
+ com.wahwahnow.dao.ChannelDao
 com/wahwahnow/models/BrokerVideo.java
  com.wahwahnow.models.BrokerVideo
-com/wahwahnow/models/VideoImagePreview.java
- com.wahwahnow.models.VideoImagePreview
-com/wahwahnow/dao/UserDao.java
- com.wahwahnow.dao.UserDao
-com/wahwahnow/models/UserAuth.java
- com.wahwahnow.models.UserAuth
-com/wahwahnow/services/BrokerService.java
- com.wahwahnow.services.BrokerService
-com/wahwahnow/models/Channel.java
- com.wahwahnow.models.Channel
+com/wahwahnow/controllers/UserChannelController.java
+ com.wahwahnow.controllers.UserChannelController
+com/wahwahnow/controllers/BrokerController.java
+ com.wahwahnow.controllers.BrokerController
 com/wahwahnow/controllers/ChannelController.java
  com.wahwahnow.controllers.ChannelController
-com/wahwahnow/BrokerConnection.java
- com.wahwahnow.BrokerConnection
+com/wahwahnow/dao/VideoDao.java
+ com.wahwahnow.dao.VideoDao
+com/wahwahnow/services/VideoService.java
+ com.wahwahnow.services.VideoService

@@ -9,8 +9,11 @@ import com.wahwahnow.broker.controllers.BrokerFetch;
 import com.wahwahnow.broker.controllers.DatabaseController;
 import com.wahwahnow.broker.controllers.VideoController;
 import com.wahwahnow.broker.database.Queries;
+import com.wahwahnow.broker.io.HttpRouter;
 import com.wahwahnow.broker.io.VideoFiles;
 import com.wahwahnow.broker.models.FragmentModel;
+import com.wahwahnow.broker.models.HttpJsonModel;
+import com.wahwahnow.broker.models.HttpResponseData;
 import com.wahwahnow.broker.models.VideoDirectory;
 import org.mrmtp.rpc.Util;
 import org.mrmtp.rpc.filetransfer.FileTransfer;
@@ -178,8 +181,7 @@ public class VideoRoutes {
             responseHeader.setSource(BrokerData.getInstance().getServerNode().out());
             responseHeader.setKeepAlive(true);
 
-
-            if(videoList.size() > 0){
+            if(videoList.size() == 0){
                 responseHeader.setConnection(200);
                 responseHeader.setContentType("json");
                 responseHeader.setMethodType(MethodConstants.POST);
@@ -209,6 +211,10 @@ public class VideoRoutes {
                 // Send response
                 out.write(MRMTPBuilder.getMRMTPBuffer(responseHeader, HEADER_BUFFER_SIZE), 0, HEADER_BUFFER_SIZE);
             }
+
+            out.close();
+            in.close();
+            socket.close();
 
         });
 
@@ -302,10 +308,33 @@ public class VideoRoutes {
         boolean created = videoController.createVideoDirectory(file, videoDirectory);
 
         if(created){
+            new Thread(()->{
+                notifyApplicationServer(video, true);
+            }).start();
             System.out.println("Fragmentation successful.");
         }else{
+            new Thread(()->{
+                notifyApplicationServer(video, false);
+            }).start();
             System.out.println("Fragmentation failed.");
         }
+    }
+
+    private static void notifyApplicationServer(String video, boolean isStreamable){
+        try{
+            BrokerData.getInstance().getRouter().sendRequest(
+                    HttpRouter.POST,
+                    "http://"+BrokerData.getInstance().getApplicationAddress()+"/brokers/video/notify",
+                    null,
+                    HttpJsonModel.contentType(),
+                    HttpJsonModel.postVideoNotify(
+                            BrokerData.getInstance().getServerNode().getAddress(),
+                            BrokerData.getInstance().getServerNode().getPort(),
+                            video,
+                            isStreamable
+                    )
+            );
+        }catch (IOException ignored){}
     }
 
     // checks if we should fragments or not
@@ -316,7 +345,6 @@ public class VideoRoutes {
         // if he has 3 or more on his buffer window front we dont send
         // else we send
         return nextBuffer <= 3;
-
     }
 
     // Build response header for the fragments
@@ -335,7 +363,7 @@ public class VideoRoutes {
             fragmentList.add(new FragmentModel(fragmentValue, fileSize));
 
         }
-        resBody.put("bufferSize", BUFFER_SIZE);
+        resBody.put("buffeSrize", BUFFER_SIZE);
         resBody.put("fragments", fragmentList);
 
         return gson.toJson(resBody);

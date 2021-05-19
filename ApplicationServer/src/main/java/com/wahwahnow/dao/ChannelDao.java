@@ -17,23 +17,11 @@ public class ChannelDao {
     private EntityManager entityManager;
 
     @Transactional
-    public boolean createNewVideo(String id, String about, String channelName, int timestamp, String userid){
+    public boolean createNewChannel(String id, String about, String channelName, int timestamp, String userid){
         Session session = getSession();
         Channel channel = new Channel(id, channelName, "", 0, timestamp, userid);
         session.persist(channel);
         return true;
-    }
-
-    @Transactional
-    public Video postNewVideo(String id, String channelID, String name, String description){
-        Session session = getSession();
-        Video video = new Video(id, name, description, 0, 0, channelID, 0);
-        session.persist(video);
-        Video videoRes = session.getReference(Video.class, id);
-        if(videoRes.getChannelID().equals(channelID)){
-            return videoRes;
-        }
-        return null;
     }
 
     public String getChannelID(String channelName) {

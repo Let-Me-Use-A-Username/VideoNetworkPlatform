@@ -90,10 +90,12 @@ public class CLI implements Runnable{
                     JsonModels.contentType,
                     JsonModels.uploadVideoJSON(videoName, tag, description)
             );
+            System.out.println(res.statusCode+"\n"+res.content);
             switch (res.statusCode){
                 case 200 -> {
+                    System.out.println("Uploading file...");
                     // success now send data to broker
-                    JsonObject jsonObject = new JsonObject();
+                    JsonObject jsonObject = JsonParser.parseString(res.content).getAsJsonObject();
                     String brokerAdress = jsonObject.get("uploadServer").getAsString();
                     String artist = jsonObject.get("artist").getAsString();
                     String video = jsonObject.get("video").getAsString();
@@ -107,6 +109,7 @@ public class CLI implements Runnable{
                 }
                 default -> {
                     // server fucked up
+                    System.out.println("Server failure... Please try again later.");
                 }
             }
         }catch (IOException e){ }

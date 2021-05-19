@@ -26,6 +26,7 @@ public class UserDao {
             return false;
         }
     }
+
     @Transactional
     public Users createUser(String uuid, String email){
         Session session = getSession();

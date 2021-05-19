@@ -62,7 +62,7 @@ public class Server implements Runnable{
     private void notifyAlive() {
         while (true){
             try{
-                HttpResponseData res = BrokerData.getInstance().getRouter().sendRequest(
+                BrokerData.getInstance().getRouter().sendRequest(
                         HttpRouter.POST,
                         "http://"+BrokerData.getInstance().getApplicationAddress()+"/brokers/notify",
                         null,
@@ -73,12 +73,11 @@ public class Server implements Runnable{
                                 BrokerData.getInstance().getNodeCopies()
                         )
                 );
-                System.out.println(res.content +" "+res.statusCode);
-            }catch (IOException  e){}
+            }catch (IOException ignored){}
             // sleep and continue after 5 minutes
             try{
                 Thread.sleep(5 * 60 * 1000);
-            }catch (InterruptedException e){ }
+            }catch (InterruptedException ignored){ }
         }
     }
 

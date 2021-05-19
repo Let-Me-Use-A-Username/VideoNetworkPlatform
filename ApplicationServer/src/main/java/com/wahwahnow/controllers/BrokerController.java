@@ -1,6 +1,7 @@
 package com.wahwahnow.controllers;
 
 import com.wahwahnow.services.BrokerService;
+import com.wahwahnow.services.VideoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RequestBody;
@@ -16,9 +17,11 @@ public class BrokerController {
 
     @Autowired
     private BrokerService brokerService;
+    @Autowired
+    private VideoService videoService;
 
     @RequestMapping(value = "/notify" ,method = RequestMethod.POST)
-    public ResponseEntity getNotified(@RequestBody Map<String, Object> payload){
+    public void getNotified(@RequestBody Map<String, Object> payload){
 
         String brokerAddress = (String) payload.get("brokerAddress");
         int port = (int) payload.get("port");
@@ -27,10 +30,24 @@ public class BrokerController {
         boolean status = brokerService.postBroker(brokerAddress, port, nodeCopies, 1);
         if(status){
             System.out.println("- Ping (alive) from broker: "+brokerAddress+": "+port);
-            return ResponseEntity.status(200).body("");
         }
 
-        return ResponseEntity.status(502).body("");
+    }
+
+    @RequestMapping(value = "/video/notify", method = RequestMethod.POST)
+    public void getVideoNotified(@RequestBody Map<String, Object> payload){
+
+        System.out.println("Broker notify");
+
+        String brokerAddress = (String) payload.get("brokerAddress");
+        int port = (int) payload.get("port");
+        boolean streamable = (boolean) payload.get("streamable");
+        String video = (String) payload.get("video");
+
+        System.out.println("Updating...");
+
+        videoService.putStreamable(brokerAddress+":"+port, video, streamable);
+
     }
 
 }

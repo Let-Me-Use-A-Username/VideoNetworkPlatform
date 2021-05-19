@@ -36,7 +36,7 @@ public class VideoController {
             }
         }
         // if failure delete everything and tempSource send status to application server
-        if(failure){
+            if(failure){
             // delete stuff
             return false;
         }

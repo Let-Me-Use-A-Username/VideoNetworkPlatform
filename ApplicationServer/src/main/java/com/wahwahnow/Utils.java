@@ -36,7 +36,7 @@ public class Utils {
         BcryptModel bcryptModel = new BcryptModel();
         bcryptModel.password = password;
         bcryptModel.salt = BCrypt.gensalt(SALT_ROUNDS);
-        bcryptModel.hash = BCrypt.hashpw(bcryptModel.password, bcryptModel.salt);
+        bcryptModel.hash = BCrypt.hashpw(password, bcryptModel.salt);
         return bcryptModel;
     }
 

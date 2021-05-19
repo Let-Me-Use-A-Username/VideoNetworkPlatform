@@ -3,7 +3,6 @@ package com.wahwahnow.broker;
 import com.wahwahnow.broker.controllers.DatabaseController;
 import com.wahwahnow.broker.io.HttpRouter;
 import com.wahwahnow.broker.models.ServerNode;
-import com.wahwahnow.broker.models.VideoDirectory;
 import org.mrmtp.rpc.router.Router;
 
 import java.util.HashMap;
