@@ -15,22 +15,28 @@ public class Video implements Serializable {
     private String id;
     @Column(nullable = false, columnDefinition = "TEXT")
     private String name;
+    @Column(nullable = false, columnDefinition = "INTEGER")
+    private long timestamp;
     private String description;
     private int likes;
     private int views;
-    @Column(name = "channel_id", columnDefinition = "TEXT", updatable = false)
+    @Column(name = "channel_id", nullable = false, columnDefinition = "TEXT")
     private String channelID;
+    @Column(name = "channel_name", nullable = false)
+    private String channelName;
     private int commentNum;
 
     public Video(){}
 
-    public Video(String id, String name, String description, int likes, int views, String channelID, int commentNum) {
+    public Video(String id, String name, long timestamp, String description, int likes, int views, String channelID, String channelName, int commentNum) {
         this.id = id;
         this.likes = likes;
         this.name = name;
+        this.timestamp = timestamp;
         this.description = description;
         this.views = views;
         this.channelID = channelID;
+        this.channelName = channelName;
         this.commentNum = commentNum;
     }
 
@@ -89,5 +95,21 @@ public class Video implements Serializable {
 
     public void setDescription(String description) {
         this.description = description;
+    }
+
+    public long getTimestamp() {
+        return timestamp;
+    }
+
+    public void setTimestamp(long timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public String getChannelName() {
+        return channelName;
+    }
+
+    public void setChannelName(String channelName) {
+        this.channelName = channelName;
     }
 }

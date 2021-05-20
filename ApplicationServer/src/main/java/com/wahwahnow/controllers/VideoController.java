@@ -1,11 +1,16 @@
 package com.wahwahnow.controllers;
 
+import com.wahwahnow.Utils;
+import com.wahwahnow.models.BrokerVideo;
+import com.wahwahnow.models.Channel;
 import com.wahwahnow.models.Video;
+import com.wahwahnow.services.ChannelService;
 import com.wahwahnow.services.VideoService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,6 +21,8 @@ public class VideoController {
 
     @Autowired
     private VideoService videoService;
+    @Autowired
+    private ChannelService channelService;
 
     /*
         Get published videos from: index * 10 + 1 to index * 10 + 11
@@ -43,14 +50,26 @@ public class VideoController {
         return ResponseEntity.status(200).body(res);
     }
 
-    @RequestMapping(value = "/video/{video_id}")
+    @RequestMapping(value = "/videos/{video_id}")
     public ResponseEntity getVideo(@PathVariable String video_id){
         Map<String, Object> res = new HashMap<>();
 
-        // else server failure
-        res.put("msg", "Something went wrong");
-        res.put("statusMsg", "SERVER_ERROR");
-        return ResponseEntity.status(502).body(res);
+        // get channel name to get channelName
+        Channel ch = channelService.getChannelByVideoId(video_id);
+
+        String artistHash = Utils.sha1(ch.getChannelName());
+
+        // Get broker who has it
+        List<BrokerVideo> brokerList = videoService.getBrokers(video_id);
+        List<String> brokers = new ArrayList<>();
+        brokerList.forEach((b)->{
+            brokers.add(b.getBrokerAddress());
+        });
+
+        res.put("artist", artistHash);
+        res.put("brokers", brokers);
+
+        return ResponseEntity.status(200).body(res);
     }
 
     @RequestMapping(value = "/videoTags", method = RequestMethod.GET)

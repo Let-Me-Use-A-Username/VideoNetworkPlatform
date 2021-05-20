@@ -13,7 +13,7 @@ public class Channel implements Serializable {
 
     @Id
     private String id;
-    @Column(nullable = false, name="channel_name")
+    @Column(nullable = false, name="channel_name", unique = true)
     private String channelName;
     private String about;
     private Integer videosUploaded;

@@ -5,7 +5,10 @@ import com.auth0.jwt.JWTVerifier;
 import com.auth0.jwt.algorithms.Algorithm;
 import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
 import com.wahwahnow.models.BcryptModel;
 import com.wahwahnow.models.UserAuth;
 import org.springframework.security.crypto.bcrypt.*;
@@ -81,7 +84,8 @@ public class Utils {
                     .build(); //Reusable verifier instance
             DecodedJWT jwt = verifier.verify(token);
             // if expired return return 1
-            return jwt.getClaim("channelName").toString();
+            Claim channelName = jwt.getClaim("channelName");
+            return channelName.isNull()? "" : channelName.asString();
         } catch (JWTVerificationException exception){
             return "";
         }

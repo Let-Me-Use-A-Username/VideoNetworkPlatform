@@ -1,12 +1,16 @@
 package com.wahwahnow;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import com.google.gson.reflect.TypeToken;
+import org.mrmtp.rpc.filetransfer.FileReader;
 
 import java.io.IOException;
 import java.lang.reflect.Type;
+import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 
@@ -58,7 +62,91 @@ public class CLI implements Runnable{
      * Check latest videos
      */
     private void getLatest(){
+        // Get list of 10 first then get either input from list or enter + for more videos otherwise -1 to exit
+        ArrayList<VideoModel> videos = new ArrayList<>();
+        int offset = 0;
+        boolean fetched = fetchVideoList(offset, videos);
+        if(!fetched){
+            System.out.println("Something went wrong when fetching video list...");
+        }
+        String userInput = "11211";
+        VideoModel fetch = null;
+        // fetch videos
+        while (!userInput.equals("-1") && !userInput.isBlank()){
+            System.out.println("\t\t\tLatest videos");
+            videos.forEach((v)->v.out());
+            System.out.println("\n");
+            userInput = readString("Enter video to query(input vid) or + for more videos> ");
+            String vid = userInput;
+            VideoModel videoModel = videos.stream().filter((v)-> v.videoId.equals(vid)).findFirst().orElse(null);
+            if(videoModel != null){
+                fetch = videoModel;
+                break;
+            }
+            if(userInput.equals("+")){
+                offset++;
+                fetchVideoList(offset, videos);
+            }
+        }
+        // if fetch is not null fetch video (stream)
+        if(fetch != null){
+            try{
+                HttpResponseData res = router.sendRequest(HttpRouter.GET,
+                        ClientData.getInstance().getWebApi().toString()+"/video/videos/"+fetch.videoId,
+                        ClientData.getInstance().getJwtHeader(),
+                        null,
+                        null
+                );
+                JsonObject jsonObject = JsonParser.parseString(res.content).getAsJsonObject();
+                System.out.println(res.content);
+                String artistHash = jsonObject.get("artist").getAsString();
+                List<String> brokers = new ArrayList<>();
+                Iterator<JsonElement> it = jsonObject.get("brokers").getAsJsonArray().iterator();
+                while (it.hasNext()){
+                    JsonElement brokerElement = it.next();
+                    brokers.add(brokerElement.getAsString());
+                }
+                streamVideo(fetch.videoId, artistHash, brokers);
+            }catch (IOException e){ System.out.println("Something went wrong when request streaming data... from the app"); }
+        }
+    }
 
+    private void streamVideo(String videoID, String artistHash, List<String> brokers){
+        // first broker check alive fetches video
+        for(String broker: brokers) {
+            String directory = "./clientTest/"+artistHash+"/"+videoID;
+            if(MRMTPClient.checkAlive(broker)){
+                VideoFragments videoFragments = MRMTPClient.getVideoDetails(artistHash, videoID, broker);
+
+                FileReader.createDirectoryPath(directory);
+                MRMTPClient.getFragments(videoFragments, artistHash, videoID, broker, directory);
+
+                break;
+            }
+        }
+
+
+    }
+
+    private boolean fetchVideoList(int offset, List<VideoModel> videos){
+        try{
+            HttpResponseData res = router.sendRequest(HttpRouter.GET,
+                    ClientData.getInstance().getWebApi().toString()+"/video/"+offset,
+                    ClientData.getInstance().getJwtHeader(),
+                    null,
+                    null
+            );
+            JsonObject jsonObject = JsonParser.parseString(res.content).getAsJsonObject();
+            Iterator<JsonElement> it = jsonObject.get("videos").getAsJsonArray().iterator();
+            while(it.hasNext()){
+                JsonObject videoElement = it.next().getAsJsonObject();
+                String name = videoElement.get("name").getAsString();
+                String channelName = videoElement.get("channelName").getAsString();
+                String id = videoElement.get("id").getAsString();
+                videos.add(new VideoModel(name, channelName, id));
+            }
+            return true;
+        }catch (IOException e){ return false; }
     }
 
     /**

@@ -46,8 +46,9 @@ public class ChannelController {
         Integer tagID = (Integer) payload.get("tagID");
 
         // get channel id
-        System.out.println("Channel name is "+channelName);
+
         String channelID = channelService.getChannelID(channelName);
+        long timestamp = System.currentTimeMillis() / 1000;
 
         int tries = 15;
         boolean success = false;
@@ -56,7 +57,8 @@ public class ChannelController {
         String videoHash = null;
         while (tries > 0){
             videoHash = Utils.sha1(Utils.base64(System.currentTimeMillis()+""));
-            video = videoService.postVideo(videoHash, channelID, videoName, description);
+
+            video = videoService.postVideo(videoHash, channelID, channelName, videoName, timestamp, description);
             if(video != null) {
                 success = true;
                 break;
@@ -79,7 +81,6 @@ public class ChannelController {
         }
 
         Broker firstBroker = null;
-        System.out.println("Broker list is "+brokerList.toString());
         // TODO: Later on move it to a MessageQueue Server
         ConsisteHashRing ring = new ConsisteHashRing(brokerList, Utils.getSecret());
         for(int copies = videoCopies ; copies > 0; copies--){

@@ -363,7 +363,7 @@ public class VideoRoutes {
             fragmentList.add(new FragmentModel(fragmentValue, fileSize));
 
         }
-        resBody.put("buffeSrize", BUFFER_SIZE);
+        resBody.put("bufferSize", BUFFER_SIZE);
         resBody.put("fragments", fragmentList);
 
         return gson.toJson(resBody);

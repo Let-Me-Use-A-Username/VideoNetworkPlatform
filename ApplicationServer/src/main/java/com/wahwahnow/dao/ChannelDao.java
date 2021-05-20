@@ -1,7 +1,6 @@
 package com.wahwahnow.dao;
 
 import com.wahwahnow.models.Channel;
-import com.wahwahnow.models.Video;
 import org.hibernate.Session;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
@@ -9,6 +8,7 @@ import org.springframework.transaction.annotation.Transactional;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
+import javax.persistence.TypedQuery;
 
 @Repository
 public class ChannelDao {
@@ -27,12 +27,31 @@ public class ChannelDao {
     public String getChannelID(String channelName) {
         Session session = getSession();
         try {
-            Channel ch = (Channel) session.createQuery("FROM channel WHERE channel_name=:channelName")
-                    .setParameter("channelName", channelName)
-                    .getSingleResult();
-            return ch.getUserID();
+            TypedQuery<Channel> q = session.createQuery("FROM channel WHERE channel_name=:channelName", Channel.class)
+                    .setParameter("channelName", channelName);
+            return q.getSingleResult().getUserID();
         }catch (NoResultException r){
             return "";
+        }
+    }
+
+    public String getChannelName(String userid) {
+        Session session = getSession();
+        try{
+            TypedQuery<Channel> q = session.createQuery("FROM channel WHERE userid=:in_userid", Channel.class).setParameter("in_userid", userid);
+            return q.getSingleResult().getChannelName();
+        }catch (NoResultException r){
+            return "";
+        }
+    }
+
+    public Channel getChannel(String channelName) {
+        Session session = getSession();
+        try{
+            TypedQuery<Channel> q = session.createQuery("FROM channel WHERE channel_name=:name", Channel.class).setParameter("name", channelName);
+            return q.getSingleResult();
+        }catch (NoResultException r){
+            return null;
         }
     }
 
@@ -43,4 +62,5 @@ public class ChannelDao {
         }
         return session;
     }
+
 }

@@ -29,7 +29,7 @@ public class UserChannelController {
         String email = (String) payload.get("email");
         String password = (String) payload.get("password");
 
-        int status = userService.authenticate(email, password);
+        int status = userService.authenticate(email.toLowerCase(), password);
         Map<String, Object> res = new HashMap<>();
         switch (status) {
             case 401 -> {
@@ -45,7 +45,7 @@ public class UserChannelController {
             case 200 -> {
                 Users user = userService.getUserByEmail(email);
                 // Get user's channel name
-                String token = Utils.createToken("");
+                String token = Utils.createToken(channelService.getChannelName(user.getId()));
                 if (!token.isBlank()) {
                     res.put("msg", "Success");
                     res.put("statusMsg", "LOGIN_SUCCESS");
@@ -77,7 +77,7 @@ public class UserChannelController {
         }
 
         // email already in use
-        if(userService.userEmailExists(email)){
+        if(userService.userEmailExists(email.toLowerCase())){
             res.put("msg", "Email already in use");
             res.put("statusMsg", "EMAIL_EXISTS");
             return ResponseEntity.status(403).body(res);
@@ -91,8 +91,8 @@ public class UserChannelController {
         }
 
         // create user and channel
-        boolean status = userService.createUser(email, password);
-        Users user = userService.getUserByEmail(email);
+        boolean status = userService.createUser(email.toLowerCase(), password);
+        Users user = userService.getUserByEmail(email.toLowerCase());
         boolean status2 = channelService.createChannel(Utils.generateUUID(), "", channelName, (int) (System.currentTimeMillis() / 1000), user.getId());
         if(status && status2){
             // respond success

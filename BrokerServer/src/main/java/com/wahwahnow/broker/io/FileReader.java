@@ -56,6 +56,8 @@ public class FileReader {
 
         File directory = new File(videoDirectory);
 
+        System.out.println(directory.toString());
+
         List<String> files = Arrays.asList(directory.list());
         files.sort(descending());
 
