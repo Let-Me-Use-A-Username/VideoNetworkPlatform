@@ -106,26 +106,31 @@ public class VideoRoutes {
             ArrayList<String> totalMissingFragments = new ArrayList<>();
 
             // send 6 (or all if less than 6) fragments
-            if(buffering && !hasFragments){
-                totalMissingFragments = getFragmentNumberToStillGet(null, artist, video);
-                responseHeader.setBody(
-                        getVideoFragmentsJson(totalMissingFragments, artist, video, 6, VIDEO_BUFFER)
-                );
-            }
-            // check if we should send 3 more
-            else if(hasFragments && hasCurrentSeek){
-                int currentSeek = jsObj.get("currentSeek").getAsInt();
-                Type listType = new TypeToken<List<FragmentModel>>(){}.getType();
-                List<FragmentModel> fragments = gson.fromJson(jsObj.get("fragments"), listType);
-                if(sendNext(currentSeek, fragments)) {
-                    totalMissingFragments = getFragmentNumberToStillGet(fragments, artist, video);
-                    responseHeader.setBody(
-                            getVideoFragmentsJson(totalMissingFragments, artist, video, 3, VIDEO_BUFFER)
-                    );
-                }
-            } else {
-                responseHeader.setBody("");
-            }
+//            if(buffering && !hasFragments){
+//                totalMissingFragments = getFragmentNumberToStillGet(null, artist, video);
+//                responseHeader.setBody(
+//                        getVideoFragmentsJson(totalMissingFragments, artist, video, 6, VIDEO_BUFFER)
+//                );
+//            }
+//            // check if we should send 3 more
+//            else if(hasFragments && hasCurrentSeek){
+//                int currentSeek = jsObj.get("currentSeek").getAsInt();
+//                Type listType = new TypeToken<List<FragmentModel>>(){}.getType();
+//                List<FragmentModel> fragments = gson.fromJson(jsObj.get("fragments"), listType);
+//
+//                //List<VideoModel> videoModels = gson.fromJson(jsObj.get("videos"), listType);
+//                if(sendNext(currentSeek, fragments)) {
+//                    totalMissingFragments = getFragmentNumberToStillGet(fragments, artist, video);
+//                    responseHeader.setBody(
+//                            getVideoFragmentsJson(totalMissingFragments, artist, video, 3, VIDEO_BUFFER)
+//                    );
+//                }
+//            } else {
+//                responseHeader.setBody("");
+//            }
+
+            totalMissingFragments = getFragmentNumberToStillGet(null, artist, video);
+            responseHeader.setBody( getVideoFragmentsJson(totalMissingFragments, artist, video, totalMissingFragments.size(), VIDEO_BUFFER));
 
             responseHeader.setContentLength(responseHeader.getBody().length());
             out.write(MRMTPBuilder.getMRMTPBuffer(responseHeader, HEADER_BUFFER_SIZE), 0, HEADER_BUFFER_SIZE);
@@ -318,6 +323,20 @@ public class VideoRoutes {
             }).start();
             System.out.println("Fragmentation failed.");
         }
+    }
+
+    public static void sendImage(String videoID, String base64){
+
+        String body = "{ \"videoID\": \""+ videoID +"\", \"base64\": \""+base64+"\" }";
+        try{
+            BrokerData.getInstance().getRouter().sendRequest(
+                    HttpRouter.POST,
+                    "http://"+BrokerData.getInstance().getApplicationAddress()+"/brokers/video/image",
+                    null,
+                    HttpJsonModel.contentType(),
+                    body
+            );
+        }catch (IOException ignored) {}
     }
 
     private static void notifyApplicationServer(String video, boolean isStreamable){

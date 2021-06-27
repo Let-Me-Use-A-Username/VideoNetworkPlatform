@@ -7,8 +7,6 @@ import com.auth0.jwt.exceptions.JWTCreationException;
 import com.auth0.jwt.exceptions.JWTVerificationException;
 import com.auth0.jwt.interfaces.Claim;
 import com.auth0.jwt.interfaces.DecodedJWT;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import com.wahwahnow.models.BcryptModel;
 import com.wahwahnow.models.UserAuth;
 import org.springframework.security.crypto.bcrypt.*;

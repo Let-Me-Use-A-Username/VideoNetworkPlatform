@@ -5,6 +5,7 @@ root/*
 src/main/resources/root
 BrokerServer/src/main/resources/videos/*
 BrokerServer/build
+ApplicationServer/build
 temp/
 clientTest/
 testVideo/
@@ -12,4 +13,5 @@ ApplicationServer/build/
 applicationServerDatabase.db
 DSClient/build/
 docs/CrewTodos
+docs/users.txt
 brokerDS_**/

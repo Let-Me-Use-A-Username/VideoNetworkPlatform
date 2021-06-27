@@ -15,6 +15,7 @@ public class BrokerData {
     private BrokerData(){
         httpRouter = new HttpRouter();
         brokerRouter = new Router();
+        applicationAddress = "192.168.1.2:8080";
     }
 
     public static synchronized BrokerData getInstance(){

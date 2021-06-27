@@ -50,6 +50,19 @@ public class VideoController {
         return ResponseEntity.status(200).body(res);
     }
 
+    @RequestMapping(value = "/image/{video_id}")
+    public ResponseEntity getVideoImage(@PathVariable String video_id){
+        Map<String, Object> res = new HashMap<>();
+        String base64 = videoService.getVideoImage(video_id);
+        if(base64 == null){
+            return ResponseEntity.status(404).body("{ \"msg\": \"Not Found\" }");
+        }
+
+        res.put("videoID", video_id);
+        res.put("base64", base64);
+        return ResponseEntity.status(200).body(res);
+    }
+
     @RequestMapping(value = "/videos/{video_id}")
     public ResponseEntity getVideo(@PathVariable String video_id){
         Map<String, Object> res = new HashMap<>();

@@ -32,4 +32,13 @@ public class VideoService {
     public List<BrokerVideo> getBrokers(String video_id) {
         return videoDao.getBrokers(video_id);
     }
+
+    public void putVideoImage(String videoID, String base64) {
+        videoDao.putVideoImage(videoID, base64);
+    }
+
+    public String getVideoImage(String video_id) {
+        return videoDao.getVideoImage(video_id);
+    }
+
 }

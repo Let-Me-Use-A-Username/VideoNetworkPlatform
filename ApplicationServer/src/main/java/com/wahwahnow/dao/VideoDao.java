@@ -9,6 +9,7 @@ import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -83,6 +84,24 @@ public class VideoDao{
             TypedQuery<Video> q = session.createQuery("FROM video WHERE id=:video_id", Video.class)
                     .setParameter("video_id", video_id);
             return q.getSingleResult();
+        }catch (NoResultException r){
+            return null;
+        }
+    }
+
+    @Transactional
+    public void putVideoImage(String videoID, String base64) {
+        Session session = getSession();
+        VideoImagePreview videoImagePreview = new VideoImagePreview(videoID, base64);
+        session.persist(videoImagePreview);
+    }
+
+    public String getVideoImage(String video_id) {
+        Session session = getSession();
+        try{
+            TypedQuery<VideoImagePreview> q = session.createQuery("FROM video_image_preview WHERE video_id=:video_id", VideoImagePreview.class)
+                    .setParameter("video_id", video_id);
+            return q.getSingleResult().getBase64();
         }catch (NoResultException r){
             return null;
         }

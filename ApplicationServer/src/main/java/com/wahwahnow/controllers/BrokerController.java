@@ -34,6 +34,17 @@ public class BrokerController {
 
     }
 
+
+    @RequestMapping(value = "/video/image", method = RequestMethod.POST)
+    public void getVideoImage(@RequestBody Map<String, Object> payload){
+
+        String videoID = payload.get("videoID").toString();
+        String base64 = payload.get("base64").toString();
+
+        videoService.putVideoImage(videoID, base64);
+
+    }
+
     @RequestMapping(value = "/video/notify", method = RequestMethod.POST)
     public void getVideoNotified(@RequestBody Map<String, Object> payload){
 

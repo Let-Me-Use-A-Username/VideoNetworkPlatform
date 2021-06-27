@@ -10,24 +10,14 @@ public class VideoImagePreview implements Serializable {
     @Id
     @Column(name = "video_id", columnDefinition = "TEXT")
     private String videoID;
-    @Column(name = "data", columnDefinition = "BLOB")
-    @Lob
-    private byte[] data;
+    @Column(name = "base64", columnDefinition = "TEXT")
+    private String base64;
 
     public VideoImagePreview(){}
 
-    public VideoImagePreview(String videoID, byte[] data) {
+    public VideoImagePreview(String videoID, String base64) {
         this.videoID = videoID;
-        this.data = data;
-    }
-
-
-    public byte[] getBase64() {
-        return data;
-    }
-
-    public void setBase64(byte[] data) {
-        this.data = data;
+        this.base64 = base64;
     }
 
 
@@ -37,5 +27,13 @@ public class VideoImagePreview implements Serializable {
 
     public void setVideoID(String videoID) {
         this.videoID = videoID;
+    }
+
+    public String getBase64() {
+        return base64;
+    }
+
+    public void setBase64(String base64) {
+        this.base64 = base64;
     }
 }
